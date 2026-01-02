@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 
-// Mock players data
 const mockPlayers = [
   { id: "1", name: "Erik Lindqvist", position: "Central mittfältare", age: 23, region: "Stockholm" },
   { id: "2", name: "Marcus Eriksson", position: "Anfallare", age: 21, region: "Göteborg" },
@@ -96,7 +95,7 @@ const SearchPlayers = () => {
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Filters Sidebar - Desktop */}
           <div className="hidden lg:block w-72 flex-shrink-0">
-            <div className="bg-card rounded-xl border border-border p-5 shadow-card sticky top-24">
+            <div className="rounded-2xl border border-border bg-card p-5 sticky top-24">
               <div className="flex items-center justify-between mb-5">
                 <h2 className="font-display font-semibold text-foreground flex items-center gap-2">
                   <SlidersHorizontal className="h-4 w-4" />
@@ -115,7 +114,7 @@ const SearchPlayers = () => {
 
               <div className="space-y-5">
                 <div className="space-y-2">
-                  <Label>Position</Label>
+                  <Label className="text-sm">Position</Label>
                   <Select value={position} onValueChange={setPosition}>
                     <SelectTrigger>
                       <SelectValue />
@@ -131,7 +130,7 @@ const SearchPlayers = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Ålder</Label>
+                  <Label className="text-sm">Ålder</Label>
                   <div className="flex gap-2">
                     <Input
                       type="number"
@@ -153,7 +152,7 @@ const SearchPlayers = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Region</Label>
+                  <Label className="text-sm">Region</Label>
                   <Select value={region} onValueChange={setRegion}>
                     <SelectTrigger>
                       <SelectValue />
@@ -169,7 +168,7 @@ const SearchPlayers = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Kontraktsstatus</Label>
+                  <Label className="text-sm">Kontraktsstatus</Label>
                   <Select value={contractStatus} onValueChange={setContractStatus}>
                     <SelectTrigger>
                       <SelectValue />
@@ -192,7 +191,7 @@ const SearchPlayers = () => {
             {/* Search Bar */}
             <div className="flex gap-3 mb-6">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="text"
                   placeholder="Sök på spelarnamn..."
@@ -213,7 +212,7 @@ const SearchPlayers = () => {
 
             {/* Mobile Filters */}
             {showFilters && (
-              <div className="lg:hidden bg-card rounded-xl border border-border p-5 shadow-card mb-6 animate-fade-in">
+              <div className="lg:hidden rounded-2xl border border-border bg-card p-5 mb-6 animate-fade-in">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="font-display font-semibold text-foreground">Filter</h2>
                   <button onClick={() => setShowFilters(false)}>
@@ -222,7 +221,7 @@ const SearchPlayers = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Position</Label>
+                    <Label className="text-sm">Position</Label>
                     <Select value={position} onValueChange={setPosition}>
                       <SelectTrigger>
                         <SelectValue />
@@ -237,7 +236,7 @@ const SearchPlayers = () => {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>Region</Label>
+                    <Label className="text-sm">Region</Label>
                     <Select value={region} onValueChange={setRegion}>
                       <SelectTrigger>
                         <SelectValue />

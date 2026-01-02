@@ -3,7 +3,6 @@ import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { MapPin, Users, Trophy, Mail, Phone, Calendar } from "lucide-react";
 
-// Mock club data
 const mockClub = {
   id: "1",
   name: "Djurgårdens IF",
@@ -26,16 +25,14 @@ const ClubProfile = () => {
     <Layout>
       <div className="container py-8">
         {/* Profile Header */}
-        <div className="bg-card rounded-2xl border border-border shadow-card overflow-hidden">
-          <div className="hero-gradient p-8 pb-24 relative">
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djZoNnYtNmgtNnptMCAwdi02aC02djZoNnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-50" />
-          </div>
+        <div className="rounded-2xl border border-border bg-card overflow-hidden">
+          <div className="bg-foreground p-8 pb-20" />
           
-          <div className="px-8 pb-8 -mt-16 relative">
-            <div className="flex flex-col md:flex-row md:items-end gap-6">
+          <div className="px-6 md:px-8 pb-6 -mt-12">
+            <div className="flex flex-col md:flex-row md:items-end gap-5">
               {/* Logo */}
-              <div className="w-32 h-32 rounded-2xl bg-background border-4 border-background shadow-lg flex items-center justify-center">
-                <span className="font-display text-3xl font-bold text-primary">
+              <div className="w-24 h-24 rounded-2xl bg-background border-4 border-card flex items-center justify-center flex-shrink-0">
+                <span className="font-display text-2xl font-bold text-foreground">
                   {mockClub.name.split(" ")[0].substring(0, 3).toUpperCase()}
                 </span>
               </div>
@@ -48,15 +45,15 @@ const ClubProfile = () => {
                 
                 <div className="flex flex-wrap gap-4 mt-3">
                   <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <Trophy className="h-4 w-4 text-primary" />
+                    <Trophy className="h-4 w-4" />
                     {mockClub.division}
                   </span>
                   <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4 text-primary" />
+                    <MapPin className="h-4 w-4" />
                     {mockClub.region}
                   </span>
                   <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <Calendar className="h-4 w-4 text-primary" />
+                    <Calendar className="h-4 w-4" />
                     {mockClub.activeTrials} aktiva provträningar
                   </span>
                 </div>
@@ -64,7 +61,7 @@ const ClubProfile = () => {
 
               {/* CTA */}
               <div className="md:ml-auto">
-                <Button size="lg">
+                <Button variant="neon" size="lg">
                   <Calendar className="mr-2 h-4 w-4" />
                   Skapa provträning
                 </Button>
@@ -77,7 +74,7 @@ const ClubProfile = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* About */}
-            <div className="bg-card rounded-xl border border-border p-6 shadow-card">
+            <div className="rounded-2xl border border-border bg-card p-6">
               <h2 className="font-display text-lg font-semibold text-foreground mb-4">
                 Om klubben
               </h2>
@@ -85,7 +82,7 @@ const ClubProfile = () => {
             </div>
 
             {/* Stats placeholder */}
-            <div className="bg-card rounded-xl border border-border p-6 shadow-card">
+            <div className="rounded-2xl border border-border bg-card p-6">
               <h2 className="font-display text-lg font-semibold text-foreground mb-4">
                 Klubbstatistik
               </h2>
@@ -96,7 +93,7 @@ const ClubProfile = () => {
                   { label: "SM-guld", value: "12" },
                   { label: "Arena", value: "Tele2 Arena" },
                 ].map((stat, index) => (
-                  <div key={index} className="text-center p-4 rounded-lg bg-muted/50">
+                  <div key={index} className="text-center p-4 rounded-xl bg-muted">
                     <p className="font-display text-2xl font-bold text-foreground">{stat.value}</p>
                     <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
                   </div>
@@ -108,9 +105,9 @@ const ClubProfile = () => {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Contact */}
-            <div className="bg-card rounded-xl border border-border p-6 shadow-card">
+            <div className="rounded-2xl border border-border bg-card p-6">
               <h3 className="font-display font-semibold text-foreground mb-4 flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" />
+                <Users className="h-5 w-5" />
                 Kontaktperson
               </h3>
               

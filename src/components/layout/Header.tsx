@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, User, Building2 } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,17 +13,18 @@ const Header = () => {
     { path: "/", label: "Hem" },
     { path: "/search", label: "Sök spelare" },
     { path: "/trials", label: "Provträningar" },
+    { path: "/messages", label: "Meddelanden" },
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <header className="sticky top-0 z-50 w-full bg-background border-b border-border">
       <div className="container flex h-16 items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-            <span className="font-display text-lg font-bold text-primary-foreground">F</span>
+        <Link to="/" className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-foreground">
+            <span className="font-display text-lg font-bold text-background">F</span>
           </div>
-          <span className="font-display text-xl font-bold text-foreground">Fotbollin</span>
+          <span className="font-display text-xl font-bold text-foreground">fotbollin</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -34,8 +35,8 @@ const Header = () => {
               to={link.path}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 isActive(link.path)
-                  ? "bg-accent text-accent-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {link.label}
@@ -44,14 +45,14 @@ const Header = () => {
         </nav>
 
         {/* Desktop Actions */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-2">
           <Link to="/login">
             <Button variant="ghost" size="sm">
               Logga in
             </Button>
           </Link>
           <Link to="/register">
-            <Button size="sm">
+            <Button variant="neon" size="sm">
               Kom igång
             </Button>
           </Link>
@@ -79,7 +80,7 @@ const Header = () => {
                   onClick={() => setIsMenuOpen(false)}
                   className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                     isActive(link.path)
-                      ? "bg-accent text-accent-foreground"
+                      ? "bg-muted text-foreground"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
                   }`}
                 >
@@ -94,7 +95,7 @@ const Header = () => {
                 </Button>
               </Link>
               <Link to="/register" onClick={() => setIsMenuOpen(false)}>
-                <Button className="w-full">
+                <Button variant="neon" className="w-full">
                   Kom igång
                 </Button>
               </Link>
