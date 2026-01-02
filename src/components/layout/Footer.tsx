@@ -2,27 +2,26 @@ import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
-    <footer className="border-t border-border bg-muted/30">
+    <footer className="border-t border-border bg-muted/50">
       <div className="container py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {/* Brand */}
-          <div className="md:col-span-2">
-            <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-                <span className="font-display text-lg font-bold text-primary-foreground">F</span>
+          <div className="col-span-2">
+            <Link to="/" className="flex items-center gap-2.5 mb-4">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground">
+                <span className="font-display text-base font-bold text-background">F</span>
               </div>
-              <span className="font-display text-xl font-bold text-foreground">Fotbollin</span>
+              <span className="font-display text-lg font-bold text-foreground">fotbollin</span>
             </Link>
-            <p className="text-muted-foreground text-sm max-w-sm">
-              Plattformen där fotbollsspelare och klubbar möts – utan mellanhänder. 
-              Skapa din profil, visa dina highlights och bli upptäckt.
+            <p className="text-muted-foreground text-sm max-w-xs leading-relaxed">
+              Plattformen där fotbollsspelare och klubbar möts – utan mellanhänder.
             </p>
           </div>
 
           {/* Links */}
           <div>
-            <h4 className="font-display font-semibold text-foreground mb-4">Plattformen</h4>
-            <ul className="space-y-2">
+            <h4 className="font-display font-semibold text-foreground mb-4 text-sm">Plattformen</h4>
+            <ul className="space-y-2.5">
               <li>
                 <Link to="/register" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   Skapa profil
@@ -43,8 +42,8 @@ const Footer = () => {
 
           {/* Info */}
           <div>
-            <h4 className="font-display font-semibold text-foreground mb-4">Information</h4>
-            <ul className="space-y-2">
+            <h4 className="font-display font-semibold text-foreground mb-4 text-sm">Information</h4>
+            <ul className="space-y-2.5">
               <li>
                 <Link to="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   Om Fotbollin
@@ -65,7 +64,7 @@ const Footer = () => {
         </div>
 
         <div className="mt-10 pt-6 border-t border-border">
-          <p className="text-sm text-muted-foreground text-center">
+          <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} Fotbollin. Alla rättigheter förbehållna.
           </p>
         </div>

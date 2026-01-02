@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Search, ArrowLeft, MoreVertical } from "lucide-react";
 
-// Mock conversations
 const mockConversations = [
   {
     id: "1",
@@ -41,7 +40,6 @@ const mockConversations = [
   },
 ];
 
-// Mock messages for conversation 1
 const mockMessages = [
   {
     id: "1",
@@ -95,7 +93,6 @@ const Messages = () => {
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (message.trim()) {
-      // Prototype - just clear the message
       setMessage("");
     }
   };
@@ -105,7 +102,7 @@ const Messages = () => {
       <div className="h-[calc(100vh-4rem)] flex">
         {/* Conversations List */}
         <div
-          className={`w-full md:w-80 lg:w-96 border-r border-border flex flex-col bg-card ${
+          className={`w-full md:w-80 lg:w-96 border-r border-border flex flex-col bg-background ${
             selectedConversation ? "hidden md:flex" : "flex"
           }`}
         >
@@ -113,7 +110,7 @@ const Messages = () => {
           <div className="p-4 border-b border-border">
             <h1 className="font-display text-xl font-bold text-foreground mb-4">Meddelanden</h1>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
                 placeholder="Sök konversationer..."
@@ -131,15 +128,15 @@ const Messages = () => {
                 <button
                   key={convo.id}
                   onClick={() => setSelectedConversation(convo.id)}
-                  className={`w-full p-3 rounded-lg text-left transition-colors flex items-start gap-3 ${
+                  className={`w-full p-3 rounded-xl text-left transition-colors flex items-start gap-3 ${
                     selectedConversation === convo.id
-                      ? "bg-accent"
-                      : "hover:bg-muted"
+                      ? "bg-muted"
+                      : "hover:bg-muted/50"
                   }`}
                 >
                   {/* Avatar */}
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <span className="font-display font-semibold text-primary">
+                  <div className="w-11 h-11 rounded-xl bg-foreground flex items-center justify-center flex-shrink-0">
+                    <span className="font-display font-semibold text-background text-sm">
                       {convo.name.charAt(0)}
                     </span>
                   </div>
@@ -147,7 +144,7 @@ const Messages = () => {
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-medium text-foreground truncate">{convo.name}</span>
+                      <span className="font-medium text-foreground truncate text-sm">{convo.name}</span>
                       <span className="text-xs text-muted-foreground flex-shrink-0">{convo.time}</span>
                     </div>
                     <p className="text-sm text-muted-foreground truncate mt-0.5">
@@ -157,7 +154,7 @@ const Messages = () => {
 
                   {/* Unread badge */}
                   {convo.unread > 0 && (
-                    <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center flex-shrink-0">
+                    <span className="w-5 h-5 rounded-full bg-neon text-neon-foreground text-xs flex items-center justify-center flex-shrink-0 font-medium">
                       {convo.unread}
                     </span>
                   )}
@@ -169,22 +166,22 @@ const Messages = () => {
 
         {/* Chat Area */}
         <div
-          className={`flex-1 flex flex-col bg-background ${
+          className={`flex-1 flex flex-col bg-muted/30 ${
             selectedConversation ? "flex" : "hidden md:flex"
           }`}
         >
           {selectedConvo ? (
             <>
               {/* Chat Header */}
-              <div className="p-4 border-b border-border flex items-center gap-3">
+              <div className="p-4 border-b border-border bg-background flex items-center gap-3">
                 <button
                   onClick={() => setSelectedConversation(null)}
                   className="md:hidden p-2 -ml-2 rounded-lg hover:bg-muted"
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </button>
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="font-display font-semibold text-primary">
+                <div className="w-10 h-10 rounded-xl bg-foreground flex items-center justify-center">
+                  <span className="font-display font-semibold text-background text-sm">
                     {selectedConvo.name.charAt(0)}
                   </span>
                 </div>
@@ -210,14 +207,14 @@ const Messages = () => {
                       <div
                         className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
                           msg.sender === "me"
-                            ? "bg-primary text-primary-foreground rounded-br-md"
-                            : "bg-muted text-foreground rounded-bl-md"
+                            ? "bg-foreground text-background rounded-br-md"
+                            : "bg-background text-foreground rounded-bl-md border border-border"
                         }`}
                       >
                         <p className="text-sm">{msg.text}</p>
                         <span
                           className={`text-xs mt-1 block ${
-                            msg.sender === "me" ? "text-primary-foreground/70" : "text-muted-foreground"
+                            msg.sender === "me" ? "text-background/70" : "text-muted-foreground"
                           }`}
                         >
                           {msg.time}
@@ -229,7 +226,7 @@ const Messages = () => {
               </ScrollArea>
 
               {/* Message Input */}
-              <div className="p-4 border-t border-border">
+              <div className="p-4 border-t border-border bg-background">
                 <form onSubmit={handleSendMessage} className="flex gap-2 max-w-2xl mx-auto">
                   <Input
                     type="text"
@@ -238,7 +235,7 @@ const Messages = () => {
                     onChange={(e) => setMessage(e.target.value)}
                     className="flex-1"
                   />
-                  <Button type="submit" size="icon">
+                  <Button type="submit" size="icon" variant="neon">
                     <Send className="h-4 w-4" />
                   </Button>
                 </form>

@@ -2,106 +2,107 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
 @layer base {
   :root {
-    /* Fotbollin Design System - Clean & Professional Sports Platform */
+    /* Fotbollin Design System - Unisport Inspired */
+    /* Dark green primary, black/white base, neon green accent */
     
-    /* Primary - Deep Forest Green */
-    --primary: 152 45% 18%;
+    /* Primary - Deep Dark Green */
+    --primary: 150 50% 15%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 152 40% 25%;
-    --primary-glow: 152 45% 30%;
     
-    /* Backgrounds */
+    /* Neon Accent - Bright Lime Green */
+    --neon: 85 85% 55%;
+    --neon-foreground: 0 0% 0%;
+    
+    /* Backgrounds - Clean White */
     --background: 0 0% 100%;
-    --foreground: 0 0% 8%;
+    --foreground: 0 0% 5%;
     
     /* Cards & Surfaces */
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 8%;
+    --card-foreground: 0 0% 5%;
     
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 8%;
+    --popover-foreground: 0 0% 5%;
     
     /* Secondary - Light Gray */
-    --secondary: 150 10% 96%;
-    --secondary-foreground: 0 0% 8%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 10%;
     
     /* Muted */
-    --muted: 150 10% 94%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 40%;
     
-    /* Accent - Lighter Green */
-    --accent: 152 35% 92%;
-    --accent-foreground: 152 45% 18%;
+    /* Accent - Subtle Green Tint */
+    --accent: 150 20% 95%;
+    --accent-foreground: 150 50% 15%;
     
     /* Destructive */
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
     
     /* Borders & Inputs */
-    --border: 150 10% 88%;
-    --input: 150 10% 88%;
-    --ring: 152 45% 18%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 150 50% 15%;
     
     --radius: 0.75rem;
     
     /* Sidebar */
-    --sidebar-background: 152 45% 18%;
+    --sidebar-background: 0 0% 3%;
     --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 152 45% 18%;
-    --sidebar-accent: 152 40% 25%;
+    --sidebar-primary: 85 85% 55%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 10%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 152 40% 25%;
-    --sidebar-ring: 0 0% 100%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 85 85% 55%;
     
     /* Custom tokens */
-    --success: 152 60% 40%;
+    --success: 150 60% 40%;
     --success-foreground: 0 0% 100%;
     
-    /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(152 45% 18%) 0%, hsl(152 40% 12%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(150 10% 98%) 100%);
-    --gradient-cta: linear-gradient(135deg, hsl(152 45% 22%) 0%, hsl(152 45% 16%) 100%);
-    
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.08), 0 2px 4px -2px hsl(0 0% 0% / 0.05);
-    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.08), 0 4px 6px -4px hsl(0 0% 0% / 0.05);
-    --shadow-glow: 0 0 40px hsl(152 45% 30% / 0.15);
+    /* Shadows - Subtle and soft */
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.03);
+    --shadow-md: 0 4px 12px -2px hsl(0 0% 0% / 0.06);
+    --shadow-lg: 0 12px 24px -4px hsl(0 0% 0% / 0.08);
+    --shadow-card: 0 2px 8px -2px hsl(0 0% 0% / 0.04), 0 0 0 1px hsl(0 0% 0% / 0.02);
   }
 
   .dark {
-    --background: 0 0% 6%;
+    --background: 0 0% 3%;
     --foreground: 0 0% 98%;
     
-    --card: 0 0% 10%;
+    --card: 0 0% 6%;
     --card-foreground: 0 0% 98%;
     
-    --popover: 0 0% 10%;
+    --popover: 0 0% 6%;
     --popover-foreground: 0 0% 98%;
     
-    --primary: 152 45% 45%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 85 85% 55%;
+    --primary-foreground: 0 0% 0%;
     
-    --secondary: 0 0% 14%;
+    --secondary: 0 0% 10%;
     --secondary-foreground: 0 0% 98%;
     
-    --muted: 0 0% 14%;
-    --muted-foreground: 0 0% 65%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
     
-    --accent: 152 30% 20%;
+    --accent: 0 0% 12%;
     --accent-foreground: 0 0% 98%;
     
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 98%;
     
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 152 45% 45%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 85 85% 55%;
+    
+    --neon: 85 85% 55%;
+    --neon-foreground: 0 0% 0%;
   }
 }
 
@@ -112,50 +113,44 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Sora', sans-serif;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
   }
 }
 
 @layer components {
-  .hero-gradient {
-    background: var(--gradient-hero);
+  .hero-section {
+    @apply bg-foreground text-background;
   }
   
-  .card-gradient {
-    background: var(--gradient-card);
+  .card-elevated {
+    @apply bg-card border border-border rounded-2xl;
+    box-shadow: var(--shadow-card);
   }
   
-  .cta-gradient {
-    background: var(--gradient-cta);
-  }
-  
-  .shadow-card {
+  .card-elevated:hover {
     box-shadow: var(--shadow-md);
   }
   
-  .shadow-card-hover {
-    box-shadow: var(--shadow-lg);
+  .badge-neon {
+    @apply bg-neon text-neon-foreground font-semibold;
   }
   
-  .text-gradient {
-    background: linear-gradient(135deg, hsl(152 45% 25%) 0%, hsl(152 45% 18%) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  .btn-neon {
+    @apply bg-neon text-neon-foreground font-semibold hover:opacity-90 transition-opacity;
   }
 }
 
 @layer utilities {
   .animate-fade-in {
-    animation: fadeIn 0.5s ease-out forwards;
+    animation: fadeIn 0.4s ease-out forwards;
   }
   
   .animate-slide-up {
-    animation: slideUp 0.5s ease-out forwards;
+    animation: slideUp 0.4s ease-out forwards;
   }
   
   @keyframes fadeIn {
@@ -166,7 +161,7 @@
   @keyframes slideUp {
     from { 
       opacity: 0;
-      transform: translateY(20px);
+      transform: translateY(12px);
     }
     to { 
       opacity: 1;

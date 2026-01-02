@@ -10,7 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Plus, Users, Check } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
-// Mock trials data
 const mockTrials = [
   {
     id: "1",
@@ -50,7 +49,6 @@ const mockTrials = [
   },
 ];
 
-// Mock applied trials for player view
 const mockAppliedTrials = ["2"];
 
 const Trials = () => {
@@ -78,7 +76,7 @@ const Trials = () => {
           
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button variant="neon">
                 <Plus className="mr-2 h-4 w-4" />
                 Skapa provträning
               </Button>
@@ -140,16 +138,16 @@ const Trials = () => {
         </div>
 
         <Tabs defaultValue="available" className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="available" className="gap-2">
+          <TabsList className="mb-6 bg-muted p-1 rounded-xl">
+            <TabsTrigger value="available" className="gap-2 rounded-lg data-[state=active]:bg-background">
               <Calendar className="h-4 w-4" />
               Tillgängliga
             </TabsTrigger>
-            <TabsTrigger value="applied" className="gap-2">
+            <TabsTrigger value="applied" className="gap-2 rounded-lg data-[state=active]:bg-background">
               <Check className="h-4 w-4" />
               Mina anmälningar
             </TabsTrigger>
-            <TabsTrigger value="managing" className="gap-2">
+            <TabsTrigger value="managing" className="gap-2 rounded-lg data-[state=active]:bg-background">
               <Users className="h-4 w-4" />
               Mina provträningar
             </TabsTrigger>
@@ -181,7 +179,7 @@ const Trials = () => {
                 ))}
             </div>
             {appliedTrials.length === 0 && (
-              <div className="text-center py-16 bg-muted/30 rounded-xl">
+              <div className="text-center py-16 bg-muted/30 rounded-2xl">
                 <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">Du har inte anmält dig till några provträningar ännu</p>
               </div>
@@ -189,10 +187,10 @@ const Trials = () => {
           </TabsContent>
 
           <TabsContent value="managing" className="mt-0">
-            <div className="bg-card rounded-xl border border-border p-8 shadow-card">
+            <div className="rounded-2xl border border-border bg-card p-8">
               <div className="text-center">
-                <div className="w-16 h-16 rounded-2xl bg-accent mx-auto mb-4 flex items-center justify-center">
-                  <Users className="h-8 w-8 text-primary" />
+                <div className="w-16 h-16 rounded-2xl bg-muted mx-auto mb-4 flex items-center justify-center">
+                  <Users className="h-8 w-8 text-muted-foreground" />
                 </div>
                 <h3 className="font-display text-lg font-semibold text-foreground mb-2">
                   Hantera dina provträningar
@@ -200,7 +198,7 @@ const Trials = () => {
                 <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
                   Här kan du se anmälda spelare och hantera dina provträningar som klubb.
                 </p>
-                <Button onClick={() => setIsDialogOpen(true)}>
+                <Button variant="neon" onClick={() => setIsDialogOpen(true)}>
                   <Plus className="mr-2 h-4 w-4" />
                   Skapa provträning
                 </Button>
