@@ -6,77 +6,103 @@
 
 @layer base {
   :root {
-    /* Fotbollin Design System - Dark Mode Premium Sports Tech */
+    /* Fotbollin Design System - Unisport Inspired */
+    /* Dark green primary, black/white base, neon green accent */
     
-    /* Primary - Neon Green */
-    --primary: 85 100% 50%;
-    --primary-foreground: 0 0% 0%;
+    /* Primary - Deep Dark Green */
+    --primary: 150 50% 15%;
+    --primary-foreground: 0 0% 100%;
     
-    /* Neon Accent - Electric Green */
-    --neon: 85 100% 50%;
+    /* Neon Accent - Bright Lime Green */
+    --neon: 85 85% 55%;
     --neon-foreground: 0 0% 0%;
     
-    /* Backgrounds - Pure Black */
-    --background: 0 0% 0%;
-    --foreground: 0 0% 98%;
+    /* Backgrounds - Clean White */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 5%;
     
-    /* Cards & Surfaces - Dark Gray */
-    --card: 0 0% 8%;
-    --card-foreground: 0 0% 98%;
+    /* Cards & Surfaces */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 5%;
     
-    --popover: 0 0% 8%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 5%;
     
-    /* Secondary - Subtle Dark */
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 98%;
+    /* Secondary - Light Gray */
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 10%;
     
     /* Muted */
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 55%;
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 40%;
     
-    /* Accent */
-    --accent: 0 0% 12%;
-    --accent-foreground: 0 0% 98%;
+    /* Accent - Subtle Green Tint */
+    --accent: 150 20% 95%;
+    --accent-foreground: 150 50% 15%;
     
     /* Destructive */
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
     
     /* Borders & Inputs */
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 85 100% 50%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 150 50% 15%;
     
     --radius: 0.75rem;
     
     /* Sidebar */
-    --sidebar-background: 0 0% 5%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 85 100% 50%;
+    --sidebar-background: 0 0% 3%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 85 85% 55%;
     --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 0 0% 12%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 18%;
-    --sidebar-ring: 85 100% 50%;
+    --sidebar-accent: 0 0% 10%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 85 85% 55%;
     
     /* Custom tokens */
     --success: 150 60% 40%;
     --success-foreground: 0 0% 100%;
     
-    /* Glow effects */
-    --glow-neon: 0 0 20px hsl(85 100% 50% / 0.4);
-    --glow-neon-strong: 0 0 40px hsl(85 100% 50% / 0.6);
-    
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.3);
-    --shadow-md: 0 4px 12px -2px hsl(0 0% 0% / 0.5);
-    --shadow-lg: 0 12px 24px -4px hsl(0 0% 0% / 0.6);
-    --shadow-card: 0 2px 8px -2px hsl(0 0% 0% / 0.4);
+    /* Shadows - Subtle and soft */
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.03);
+    --shadow-md: 0 4px 12px -2px hsl(0 0% 0% / 0.06);
+    --shadow-lg: 0 12px 24px -4px hsl(0 0% 0% / 0.08);
+    --shadow-card: 0 2px 8px -2px hsl(0 0% 0% / 0.04), 0 0 0 1px hsl(0 0% 0% / 0.02);
   }
 
   .dark {
-    /* Same as root - dark by default */
+    --background: 0 0% 3%;
+    --foreground: 0 0% 98%;
+    
+    --card: 0 0% 6%;
+    --card-foreground: 0 0% 98%;
+    
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 98%;
+    
+    --primary: 85 85% 55%;
+    --primary-foreground: 0 0% 0%;
+    
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 98%;
+    
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
+    
+    --accent: 0 0% 12%;
+    --accent-foreground: 0 0% 98%;
+    
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 85 85% 55%;
+    
+    --neon: 85 85% 55%;
+    --neon-foreground: 0 0% 0%;
   }
 }
 
@@ -96,45 +122,25 @@
 }
 
 @layer components {
+  .hero-section {
+    @apply bg-foreground text-background;
+  }
+  
   .card-elevated {
-    @apply bg-card border border-border rounded-2xl transition-all duration-300;
+    @apply bg-card border border-border rounded-2xl;
     box-shadow: var(--shadow-card);
   }
   
   .card-elevated:hover {
     box-shadow: var(--shadow-md);
-    border-color: hsl(var(--border) / 0.8);
   }
   
   .badge-neon {
-    @apply bg-neon text-neon-foreground font-semibold px-3 py-1 rounded-full text-sm;
+    @apply bg-neon text-neon-foreground font-semibold;
   }
   
   .btn-neon {
-    @apply bg-neon text-neon-foreground font-semibold hover:opacity-90 transition-all duration-200;
-    box-shadow: var(--glow-neon);
-  }
-  
-  .btn-neon:hover {
-    box-shadow: var(--glow-neon-strong);
-  }
-  
-  .glow-border {
-    @apply border border-neon/30;
-    box-shadow: var(--glow-neon);
-  }
-  
-  .video-overlay-gradient {
-    background: linear-gradient(
-      to top,
-      hsl(0 0% 0% / 0.9) 0%,
-      hsl(0 0% 0% / 0.5) 30%,
-      transparent 60%
-    );
-  }
-  
-  .glass-dark {
-    @apply bg-background/80 backdrop-blur-xl border border-border/50;
+    @apply bg-neon text-neon-foreground font-semibold hover:opacity-90 transition-opacity;
   }
 }
 
@@ -145,10 +151,6 @@
   
   .animate-slide-up {
     animation: slideUp 0.4s ease-out forwards;
-  }
-  
-  .animate-pulse-neon {
-    animation: pulseNeon 2s ease-in-out infinite;
   }
   
   @keyframes fadeIn {
@@ -165,23 +167,5 @@
       opacity: 1;
       transform: translateY(0);
     }
-  }
-  
-  @keyframes pulseNeon {
-    0%, 100% { 
-      box-shadow: 0 0 20px hsl(85 100% 50% / 0.4);
-    }
-    50% { 
-      box-shadow: 0 0 40px hsl(85 100% 50% / 0.7);
-    }
-  }
-  
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
   }
 }
