@@ -1,112 +1,120 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail, Lock, ArrowRight, ArrowLeft } from "lucide-react";
+import { Mail, Lock, ArrowLeft } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 
-const Login = () => {
+export default function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login:", { email, password });
+    // Check stored role and navigate accordingly
+    const role = localStorage.getItem("fotbollin_role");
+    navigate(role === "club" ? "/club-dashboard" : "/feed");
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left side - Form */}
-      <div className="flex-1 flex items-center justify-center p-6 md:p-8">
-        <div className="w-full max-w-md">
-          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors text-sm">
-            <ArrowLeft className="h-4 w-4" />
-            Tillbaka
-          </Link>
+    <>
+      <Helmet>
+        <title>Log In | Fotbollin</title>
+        <meta
+          name="description"
+          content="Log in to your Fotbollin account to continue your football journey."
+        />
+      </Helmet>
 
-          <div className="flex items-center gap-2.5 mb-8">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-foreground">
-              <span className="font-display text-lg font-bold text-background">F</span>
+      <div className="min-h-[100dvh] bg-background flex flex-col">
+        {/* Header */}
+        <header className="p-6 flex items-center">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-2 rounded-full hover:bg-secondary transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5 text-foreground" />
+          </button>
+        </header>
+
+        {/* Content */}
+        <div className="flex-1 px-6 pb-8 flex flex-col justify-center">
+          <div className="max-w-sm mx-auto w-full">
+            {/* Logo */}
+            <div className="text-center mb-8">
+              <h1 className="font-display text-4xl font-bold text-foreground mb-2">
+                Fotboll<span className="text-neon">in</span>
+              </h1>
+              <p className="text-muted-foreground">Welcome back</p>
             </div>
-            <span className="font-display text-xl font-bold text-foreground">fotbollin</span>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Email */}
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10 bg-secondary border-0"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Password */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  <button
+                    type="button"
+                    className="text-xs text-neon hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10 bg-secondary border-0"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Submit */}
+              <Button
+                type="submit"
+                className="w-full btn-neon rounded-xl py-6 text-base font-semibold"
+              >
+                Log in
+              </Button>
+            </form>
+
+            {/* Register link */}
+            <p className="text-center text-muted-foreground text-sm mt-8">
+              Don't have an account?{" "}
+              <button
+                onClick={() => navigate("/register")}
+                className="text-neon font-medium hover:underline"
+              >
+                Create one
+              </button>
+            </p>
           </div>
-
-          <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2">
-            Välkommen tillbaka
-          </h1>
-          <p className="text-muted-foreground mb-8">
-            Logga in på ditt konto för att fortsätta
-          </p>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="email">E-postadress</Label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="din@email.se"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Lösenord</Label>
-                <Link to="/forgot-password" className="text-xs text-muted-foreground hover:text-foreground">
-                  Glömt lösenord?
-                </Link>
-              </div>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Ange ditt lösenord"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10"
-                  required
-                />
-              </div>
-            </div>
-
-            <Button type="submit" className="w-full" size="lg">
-              Logga in
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </form>
-
-          <p className="mt-8 text-center text-sm text-muted-foreground">
-            Har du inget konto?{" "}
-            <Link to="/register" className="text-foreground font-medium hover:underline">
-              Skapa konto
-            </Link>
-          </p>
         </div>
       </div>
-
-      {/* Right side - Visual */}
-      <div className="hidden lg:flex flex-1 bg-foreground items-center justify-center p-12">
-        <div className="text-center max-w-md">
-          <div className="w-20 h-20 rounded-2xl bg-neon mx-auto mb-8 flex items-center justify-center">
-            <span className="font-display text-4xl font-bold text-neon-foreground">F</span>
-          </div>
-          <h2 className="font-display text-3xl font-bold text-background mb-4">
-            Klar för match?
-          </h2>
-          <p className="text-background/70">
-            Logga in och se vilka klubbar som har visat intresse för din profil.
-          </p>
-        </div>
-      </div>
-    </div>
+    </>
   );
-};
-
-export default Login;
+}
