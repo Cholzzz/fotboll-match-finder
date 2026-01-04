@@ -11,9 +11,10 @@ const Header = () => {
 
   const navLinks = [
     { path: "/", label: "Hem" },
-    { path: "/search", label: "Sök spelare" },
+    { path: "/highlights", label: "Highlights" },
+    { path: "/dashboard", label: "Sök spelare" },
     { path: "/trials", label: "Provträningar" },
-    { path: "/messages", label: "Meddelanden" },
+    { path: "/performance", label: "Prestationsdata" },
   ];
 
   return (
@@ -28,7 +29,7 @@ const Header = () => {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="hidden lg:flex items-center gap-1">
           {navLinks.map((link) => (
             <Link
               key={link.path}
@@ -45,7 +46,7 @@ const Header = () => {
         </nav>
 
         {/* Desktop Actions */}
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-2">
           <Link to="/login">
             <Button variant="ghost" size="sm">
               Logga in
@@ -60,7 +61,7 @@ const Header = () => {
 
         {/* Mobile Menu Button */}
         <button
-          className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors"
+          className="lg:hidden p-2 rounded-lg hover:bg-muted transition-colors"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           aria-label="Toggle menu"
         >
@@ -70,7 +71,7 @@ const Header = () => {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden border-t border-border bg-background animate-fade-in">
+        <div className="lg:hidden border-t border-border bg-background animate-fade-in">
           <div className="container py-4 space-y-4">
             <nav className="flex flex-col gap-1">
               {navLinks.map((link) => (

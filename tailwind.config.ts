@@ -14,7 +14,7 @@ export default {
       center: true,
       padding: "1.5rem",
       screens: {
-        "2xl": "1280px",
+        "2xl": "1400px",
       },
     },
     extend: {
@@ -59,6 +59,10 @@ export default {
         neon: {
           DEFAULT: "hsl(var(--neon))",
           foreground: "hsl(var(--neon-foreground))",
+        },
+        electric: {
+          DEFAULT: "hsl(var(--electric))",
+          foreground: "hsl(var(--electric-foreground))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
