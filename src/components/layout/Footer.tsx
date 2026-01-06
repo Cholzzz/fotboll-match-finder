@@ -9,9 +9,9 @@ const Footer = () => {
           <div className="col-span-2">
             <Link to="/" className="flex items-center gap-2.5 mb-4">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground">
-                <span className="font-display text-base font-bold text-background">F</span>
+                <span className="font-display text-base font-bold text-background">S</span>
               </div>
-              <span className="font-display text-lg font-bold text-foreground">fotbollin</span>
+              <span className="font-display text-lg font-bold text-foreground">SportsIN</span>
             </Link>
             <p className="text-muted-foreground text-sm max-w-xs leading-relaxed">
               Plattformen där fotbollsspelare och klubbar möts – utan mellanhänder.
@@ -46,7 +46,7 @@ const Footer = () => {
             <ul className="space-y-2.5">
               <li>
                 <Link to="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  Om Fotbollin
+                  Om SportsIN
                 </Link>
               </li>
               <li>
@@ -65,7 +65,7 @@ const Footer = () => {
 
         <div className="mt-10 pt-6 border-t border-border">
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} Fotbollin. Alla rättigheter förbehållna.
+            © {new Date().getFullYear()} SportsIN. Alla rättigheter förbehållna.
           </p>
         </div>
       </div>

@@ -31,9 +31,9 @@ const Register = () => {
 
           <div className="flex items-center gap-2.5 mb-8">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-foreground">
-              <span className="font-display text-lg font-bold text-background">F</span>
+              <span className="font-display text-lg font-bold text-background">S</span>
             </div>
-            <span className="font-display text-xl font-bold text-foreground">fotbollin</span>
+            <span className="font-display text-xl font-bold text-foreground">SportsIN</span>
           </div>
 
           <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2">
@@ -153,10 +153,10 @@ const Register = () => {
       <div className="hidden lg:flex flex-1 bg-foreground items-center justify-center p-12">
         <div className="text-center max-w-md">
           <div className="w-20 h-20 rounded-2xl bg-neon mx-auto mb-8 flex items-center justify-center">
-            <span className="font-display text-4xl font-bold text-neon-foreground">F</span>
+            <span className="font-display text-4xl font-bold text-neon-foreground">S</span>
           </div>
           <h2 className="font-display text-3xl font-bold text-background mb-4">
-            Välkommen till Fotbollin
+            Välkommen till SportsIN
           </h2>
           <p className="text-background/70">
             Plattformen som kopplar samman ambitiösa fotbollsspelare med klubbar som söker talang.

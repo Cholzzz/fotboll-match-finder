@@ -68,7 +68,7 @@ const Index = () => {
               Visa din prestation – inte bara ditt nätverk
             </h1>
             <p className="mt-6 text-lg md:text-xl text-background/70 max-w-2xl">
-              Fotbollin kopplar samman ambitiösa fotbollsspelare med klubbar genom statistik, 
+              SportsIN kopplar samman ambitiösa fotbollsspelare med klubbar genom statistik, 
               prestationsdata och direktkontakt. Utan mellanhänder, utan agenter.
             </p>
             
@@ -129,7 +129,7 @@ const Index = () => {
                 Din prestation talar för sig själv
               </h2>
               <p className="mt-4 text-muted-foreground text-lg leading-relaxed">
-                Sluta vänta på att rätt kontakter ska öppna dörrar. Med Fotbollin visar du upp 
+                Sluta vänta på att rätt kontakter ska öppna dörrar. Med SportsIN visar du upp 
                 din statistik, fysiska data och highlights – och låter klubbarna komma till dig.
               </p>
 
@@ -243,7 +243,7 @@ const Index = () => {
                 Hitta rätt spelare med data
               </h2>
               <p className="mt-4 text-muted-foreground text-lg leading-relaxed">
-                Sluta leta i blindo. Med Fotbollin kan du söka, filtrera och jämföra spelare 
+                Sluta leta i blindo. Med SportsIN kan du söka, filtrera och jämföra spelare 
                 baserat på faktisk prestationsdata – inte rykten eller kontakter.
               </p>
 
@@ -322,7 +322,7 @@ const Index = () => {
               En plattform du kan lita på
             </h2>
             <p className="text-muted-foreground text-lg leading-relaxed">
-              Fotbollin är byggt för att ge spelare kontroll över sin karriär och klubbar tillgång till 
+              SportsIN är byggt för att ge spelare kontroll över sin karriär och klubbar tillgång till 
               pålitlig data. Ingen spammar, inga mellanhänder – bara direkt kontakt mellan 
               talang och möjlighet.
             </p>
