@@ -86,11 +86,14 @@ export default {
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
         display: ["Space Grotesk", "system-ui", "sans-serif"],
+        headline: ["Bebas Neue", "system-ui", "sans-serif"],
       },
       boxShadow: {
-        'glow-neon': '0 0 40px hsl(88 100% 52% / 0.35)',
-        'glow-electric': '0 0 40px hsl(195 100% 50% / 0.3)',
-        'glow-sm': '0 0 20px hsl(88 100% 52% / 0.2)',
+        'glow-neon': '0 0 60px hsl(88 100% 52% / 0.4)',
+        'glow-neon-lg': '0 0 100px hsl(88 100% 52% / 0.5)',
+        'glow-electric': '0 0 60px hsl(195 100% 50% / 0.35)',
+        'glow-sm': '0 0 30px hsl(88 100% 52% / 0.25)',
+        'card-hover': '0 25px 50px -12px hsl(0 0% 0% / 0.25)',
       },
       keyframes: {
         "accordion-down": {
@@ -117,6 +120,14 @@ export default {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.7" },
         },
+        "glow-pulse": {
+          "0%, 100%": { boxShadow: "0 0 40px hsl(88 100% 52% / 0.3)" },
+          "50%": { boxShadow: "0 0 60px hsl(88 100% 52% / 0.5)" },
+        },
+        "float": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -125,11 +136,14 @@ export default {
         "slide-up": "slide-up 0.5s ease-out forwards",
         "scale-in": "scale-in 0.3s ease-out forwards",
         "pulse-soft": "pulse-soft 2s ease-in-out infinite",
+        "glow-pulse": "glow-pulse 2s ease-in-out infinite",
+        "float": "float 3s ease-in-out infinite",
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-neon': 'linear-gradient(135deg, hsl(88 100% 52%) 0%, hsl(120 100% 40%) 100%)',
-        'gradient-dark': 'linear-gradient(180deg, hsl(0 0% 4%) 0%, hsl(0 0% 8%) 100%)',
+        'gradient-neon': 'linear-gradient(135deg, hsl(88 100% 52%) 0%, hsl(120 100% 45%) 100%)',
+        'gradient-dark': 'linear-gradient(180deg, hsl(0 0% 3%) 0%, hsl(0 0% 8%) 100%)',
+        'gradient-hero': 'linear-gradient(135deg, hsl(0 0% 3%) 0%, hsl(0 0% 8%) 50%, hsl(0 0% 4%) 100%)',
       },
     },
   },
