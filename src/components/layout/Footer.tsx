@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import logoImage from "@/assets/sportsin-logo.png";
 
 const Footer = () => {
   return (
@@ -7,11 +8,8 @@ const Footer = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="col-span-2">
-            <Link to="/" className="flex items-center gap-2.5 mb-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground">
-                <span className="font-display text-base font-bold text-background">S</span>
-              </div>
-              <span className="font-display text-lg font-bold text-foreground">SportsIN</span>
+            <Link to="/" className="flex items-center mb-4">
+              <img src={logoImage} alt="SportsIN" className="h-7 w-auto" />
             </Link>
             <p className="text-muted-foreground text-sm max-w-xs leading-relaxed">
               Plattformen där fotbollsspelare och klubbar möts – utan mellanhänder.
