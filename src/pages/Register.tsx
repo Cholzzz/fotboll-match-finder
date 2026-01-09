@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User, Building2, Mail, Lock, ArrowRight, ArrowLeft } from "lucide-react";
-import logoImage from "@/assets/sportsin-logo.png";
 
 type Role = "player" | "club" | null;
 
@@ -30,7 +29,12 @@ const Register = () => {
             Tillbaka
           </Link>
 
-          <img src={logoImage} alt="SportsIN" className="h-9 w-auto mb-8" />
+          <div className="flex items-center gap-2.5 mb-8">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-foreground">
+              <span className="font-display text-lg font-bold text-background">S</span>
+            </div>
+            <span className="font-display text-xl font-bold text-foreground">SportsIN</span>
+          </div>
 
           <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2">
             Skapa konto
@@ -148,7 +152,9 @@ const Register = () => {
       {/* Right side - Visual */}
       <div className="hidden lg:flex flex-1 bg-foreground items-center justify-center p-12">
         <div className="text-center max-w-md">
-          <img src={logoImage} alt="SportsIN" className="h-16 w-auto mx-auto mb-8" />
+          <div className="w-20 h-20 rounded-2xl bg-neon mx-auto mb-8 flex items-center justify-center">
+            <span className="font-display text-4xl font-bold text-neon-foreground">S</span>
+          </div>
           <h2 className="font-display text-3xl font-bold text-background mb-4">
             Välkommen till SportsIN
           </h2>
