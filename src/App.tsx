@@ -14,6 +14,7 @@ import Messages from "./pages/Messages";
 import Highlights from "./pages/Highlights";
 import ClubDashboard from "./pages/ClubDashboard";
 import PerformanceTests from "./pages/PerformanceTests";
+import NutritionPlan from "./pages/NutritionPlan";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
           <Route path="/highlights" element={<Highlights />} />
           <Route path="/dashboard" element={<ClubDashboard />} />
           <Route path="/performance" element={<PerformanceTests />} />
+          <Route path="/nutrition" element={<NutritionPlan />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
