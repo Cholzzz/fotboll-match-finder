@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Video, Users, Calendar, Activity, Apple, ChevronDown } from "lucide-react";
+import { Menu, X, Video, Users, Calendar, Activity, Apple, ChevronDown, UserCheck } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +19,7 @@ const Header = () => {
   const mainNavLinks = [
     { path: "/highlights", label: "Highlights", icon: Video },
     { path: "/dashboard", label: "Sök spelare", icon: Users },
+    { path: "/search-staff", label: "Sök personal", icon: UserCheck },
     { path: "/trials", label: "Provträningar", icon: Calendar },
   ];
 

@@ -9,6 +9,8 @@ import Login from "./pages/Login";
 import PlayerProfile from "./pages/PlayerProfile";
 import ClubProfile from "./pages/ClubProfile";
 import SearchPlayers from "./pages/SearchPlayers";
+import SearchStaff from "./pages/SearchStaff";
+import StaffProfile from "./pages/StaffProfile";
 import Trials from "./pages/Trials";
 import Messages from "./pages/Messages";
 import Highlights from "./pages/Highlights";
@@ -32,6 +34,8 @@ const App = () => (
           <Route path="/player/:id" element={<PlayerProfile />} />
           <Route path="/club/:id" element={<ClubProfile />} />
           <Route path="/search" element={<SearchPlayers />} />
+          <Route path="/search-staff" element={<SearchStaff />} />
+          <Route path="/staff/:id" element={<StaffProfile />} />
           <Route path="/trials" element={<Trials />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/highlights" element={<Highlights />} />
