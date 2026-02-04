@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { 
   ArrowLeft, 
   MapPin, 
@@ -20,9 +22,15 @@ import {
   CreditCard,
   Clock,
   Check,
-  CalendarDays
+  CalendarDays,
+  Loader2
 } from "lucide-react";
 import { StaffRole, StaffPricing } from "@/components/StaffCard";
+import BookingCalendar from "@/components/BookingCalendar";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import { sv } from "date-fns/locale";
 
 interface StaffMember {
   id: string;
@@ -41,6 +49,9 @@ interface StaffMember {
   availability: string;
   pricing: StaffPricing;
   services: { name: string; description: string; price: number; duration: number }[];
+  availableDays?: string[];
+  availableHoursStart?: string;
+  availableHoursEnd?: string;
 }
 
 const roleLabels: Record<StaffRole, string> = {
@@ -98,7 +109,10 @@ const mockStaffData: Record<string, StaffMember> = {
       { name: "Videoanalys", description: "Analys av ditt spel med feedback", price: 800, duration: 45 },
       { name: "Mental coaching", description: "Fokus på mental styrka och prestation", price: 1000, duration: 60 },
       { name: "Gruppträning (max 4)", description: "Träning i liten grupp", price: 600, duration: 90 }
-    ]
+    ],
+    availableDays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+    availableHoursStart: "09:00",
+    availableHoursEnd: "18:00"
   },
   s2: {
     id: "s2",
@@ -137,15 +151,31 @@ const mockStaffData: Record<string, StaffMember> = {
       { name: "Skadeförebyggande", description: "Screening och preventivt arbete", price: 1100, duration: 60 },
       { name: "Tejpning & Behandling", description: "Akut behandling och tejpning", price: 500, duration: 30 },
       { name: "Rehab-program (5 pass)", description: "Komplett rehabiliteringspaket", price: 4000, duration: 45 }
-    ]
+    ],
+    availableDays: ["monday", "wednesday", "friday"],
+    availableHoursStart: "08:00",
+    availableHoursEnd: "17:00"
   }
 };
 
+// Mock booked slots
+const mockBookedSlots = [
+  { date: "2026-02-05", startTime: "10:00" },
+  { date: "2026-02-05", startTime: "14:00" },
+  { date: "2026-02-06", startTime: "09:00" },
+  { date: "2026-02-07", startTime: "11:00" },
+];
+
 const StaffProfile = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const staff = id ? mockStaffData[id] : null;
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [bookingNotes, setBookingNotes] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!staff) {
     return (
@@ -166,6 +196,55 @@ const StaffProfile = () => {
     setSelectedService(serviceName);
     setBookingOpen(true);
   };
+
+  const handleSlotSelect = (date: Date, time: string) => {
+    setSelectedDate(date);
+    setSelectedTime(time);
+  };
+
+  const handleSubmitBooking = async () => {
+    if (!selectedDate || !selectedTime || !selectedService) return;
+
+    setIsSubmitting(true);
+
+    try {
+      // Check if user is logged in
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Logga in",
+          description: "Du måste vara inloggad för att boka.",
+          variant: "destructive",
+        });
+        navigate("/login");
+        return;
+      }
+
+      // For demo purposes, just show success
+      // In production, this would save to the bookings table
+      toast({
+        title: "Bokningsförfrågan skickad!",
+        description: `Din förfrågan för ${selectedService} den ${format(selectedDate, "d MMMM", { locale: sv })} kl. ${selectedTime} har skickats.`,
+      });
+
+      setBookingOpen(false);
+      setSelectedDate(null);
+      setSelectedTime(null);
+      setSelectedService(null);
+      setBookingNotes("");
+    } catch (error: any) {
+      toast({
+        title: "Fel",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const selectedServiceDetails = staff.services.find(s => s.name === selectedService);
 
   return (
     <Layout>
@@ -241,6 +320,10 @@ const StaffProfile = () => {
                   <CreditCard className="h-4 w-4" />
                   Tjänster & Priser
                 </TabsTrigger>
+                <TabsTrigger value="booking" className="gap-2">
+                  <CalendarDays className="h-4 w-4" />
+                  Boka tid
+                </TabsTrigger>
                 <TabsTrigger value="experience" className="gap-2">
                   <Briefcase className="h-4 w-4" />
                   Erfarenhet
@@ -307,6 +390,63 @@ const StaffProfile = () => {
                       </div>
                     ))}
                   </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="booking">
+                <div className="rounded-2xl border border-border bg-card p-6">
+                  <h3 className="font-display text-lg font-semibold text-foreground mb-2">Boka tid</h3>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    Välj datum och tid för din session med {staff.name}
+                  </p>
+                  
+                  <BookingCalendar
+                    availableDays={staff.availableDays}
+                    availableHoursStart={staff.availableHoursStart}
+                    availableHoursEnd={staff.availableHoursEnd}
+                    sessionDuration={staff.pricing.sessionDuration}
+                    bookedSlots={mockBookedSlots}
+                    onSelectSlot={handleSlotSelect}
+                    selectedDate={selectedDate}
+                    selectedTime={selectedTime}
+                  />
+
+                  {selectedDate && selectedTime && (
+                    <div className="mt-6 space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="notes">Meddelande (valfritt)</Label>
+                        <Textarea
+                          id="notes"
+                          placeholder="Beskriv kort vad du behöver hjälp med..."
+                          value={bookingNotes}
+                          onChange={(e) => setBookingNotes(e.target.value)}
+                          className="resize-none"
+                          rows={3}
+                        />
+                      </div>
+                      <Button 
+                        className="w-full btn-glow" 
+                        size="lg"
+                        onClick={() => {
+                          setSelectedService(staff.services[0]?.name || "Session");
+                          handleSubmitBooking();
+                        }}
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Skickar...
+                          </>
+                        ) : (
+                          <>
+                            <Mail className="h-4 w-4 mr-2" />
+                            Skicka bokningsförfrågan
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </TabsContent>
 
@@ -384,7 +524,7 @@ const StaffProfile = () => {
                       Boka session
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
+                  <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle className="font-display">Boka {selectedService || "session"}</DialogTitle>
                     </DialogHeader>
@@ -401,32 +541,78 @@ const StaffProfile = () => {
                             <div className="text-sm text-muted-foreground">{roleLabels[staff.role]}</div>
                           </div>
                         </div>
-                        {selectedService && (
+                        {selectedServiceDetails && (
                           <div className="text-sm text-muted-foreground">
-                            Vald tjänst: <span className="text-foreground font-medium">{selectedService}</span>
+                            <span className="text-foreground font-medium">{selectedService}</span>
+                            <span className="mx-2">•</span>
+                            <span>{selectedServiceDetails.duration} min</span>
+                            <span className="mx-2">•</span>
+                            <span className="text-neon font-medium">{selectedServiceDetails.price} kr</span>
                           </div>
                         )}
                       </div>
-                      
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="h-4 w-4 text-neon" />
-                          Bekräftelse skickas via email
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="h-4 w-4 text-neon" />
-                          Avbokning möjlig 24h innan
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="h-4 w-4 text-neon" />
-                          Betalning sker vid besök
-                        </div>
-                      </div>
 
-                      <Button className="w-full btn-glow" size="lg">
-                        <Mail className="h-4 w-4 mr-2" />
-                        Skicka bokningsförfrågan
-                      </Button>
+                      {/* Booking Calendar in Modal */}
+                      <BookingCalendar
+                        availableDays={staff.availableDays}
+                        availableHoursStart={staff.availableHoursStart}
+                        availableHoursEnd={staff.availableHoursEnd}
+                        sessionDuration={selectedServiceDetails?.duration || staff.pricing.sessionDuration}
+                        bookedSlots={mockBookedSlots}
+                        onSelectSlot={handleSlotSelect}
+                        selectedDate={selectedDate}
+                        selectedTime={selectedTime}
+                      />
+
+                      {selectedDate && selectedTime && (
+                        <>
+                          <div className="space-y-2">
+                            <Label htmlFor="modal-notes">Meddelande (valfritt)</Label>
+                            <Textarea
+                              id="modal-notes"
+                              placeholder="Beskriv kort vad du behöver hjälp med..."
+                              value={bookingNotes}
+                              onChange={(e) => setBookingNotes(e.target.value)}
+                              className="resize-none"
+                              rows={3}
+                            />
+                          </div>
+                          
+                          <div className="space-y-2 pt-2">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Check className="h-4 w-4 text-neon" />
+                              Bekräftelse skickas via email
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Check className="h-4 w-4 text-neon" />
+                              Avbokning möjlig 24h innan
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Check className="h-4 w-4 text-neon" />
+                              Betalning sker vid besök
+                            </div>
+                          </div>
+
+                          <Button 
+                            className="w-full btn-glow" 
+                            size="lg"
+                            onClick={handleSubmitBooking}
+                            disabled={isSubmitting}
+                          >
+                            {isSubmitting ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Skickar...
+                              </>
+                            ) : (
+                              <>
+                                <Mail className="h-4 w-4 mr-2" />
+                                Skicka bokningsförfrågan
+                              </>
+                            )}
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </DialogContent>
                 </Dialog>
