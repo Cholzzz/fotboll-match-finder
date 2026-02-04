@@ -14,16 +14,182 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          booking_date: string
+          client_user_id: string
+          created_at: string
+          end_time: string
+          id: string
+          notes: string | null
+          service_name: string | null
+          staff_user_id: string
+          start_time: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          booking_date: string
+          client_user_id: string
+          created_at?: string
+          end_time: string
+          id?: string
+          notes?: string | null
+          service_name?: string | null
+          staff_user_id: string
+          start_time: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          booking_date?: string
+          client_user_id?: string
+          created_at?: string
+          end_time?: string
+          id?: string
+          notes?: string | null
+          service_name?: string | null
+          staff_user_id?: string
+          start_time?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          full_name: string
+          id: string
+          location: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          full_name: string
+          id?: string
+          location?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          location?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      staff_profiles: {
+        Row: {
+          available_days: Json | null
+          available_hours_end: string | null
+          available_hours_start: string | null
+          certifications: Json | null
+          created_at: string
+          experience_years: number | null
+          id: string
+          package_price: number | null
+          package_sessions: number | null
+          services: Json | null
+          session_duration: number | null
+          session_price: number | null
+          specialization: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          available_days?: Json | null
+          available_hours_end?: string | null
+          available_hours_start?: string | null
+          certifications?: Json | null
+          created_at?: string
+          experience_years?: number | null
+          id?: string
+          package_price?: number | null
+          package_sessions?: number | null
+          services?: Json | null
+          session_duration?: number | null
+          session_price?: number | null
+          specialization?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          available_days?: Json | null
+          available_hours_end?: string | null
+          available_hours_start?: string | null
+          certifications?: Json | null
+          created_at?: string
+          experience_years?: number | null
+          id?: string
+          package_price?: number | null
+          package_sessions?: number | null
+          services?: Json | null
+          session_duration?: number | null
+          session_price?: number | null
+          specialization?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["user_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role:
+        | "player"
+        | "club"
+        | "physiotherapist"
+        | "coach"
+        | "analyst"
+        | "scout"
+        | "nutritionist"
+        | "mental_coach"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +316,17 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: [
+        "player",
+        "club",
+        "physiotherapist",
+        "coach",
+        "analyst",
+        "scout",
+        "nutritionist",
+        "mental_coach",
+      ],
+    },
   },
 } as const

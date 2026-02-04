@@ -1,17 +1,60 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Lock, ArrowRight, ArrowLeft } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login:", { email, password });
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Inloggad!",
+        description: "Välkommen tillbaka.",
+      });
+
+      // Redirect based on user role
+      if (data.user) {
+        const { data: roles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', data.user.id)
+          .single();
+
+        if (roles?.role === 'club') {
+          navigate('/club-dashboard');
+        } else if (['physiotherapist', 'coach', 'analyst', 'scout', 'nutritionist', 'mental_coach'].includes(roles?.role || '')) {
+          navigate('/search-staff'); // Staff members go to their area
+        } else {
+          navigate('/');
+        }
+      }
+    } catch (error: any) {
+      toast({
+        title: "Fel vid inloggning",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -76,8 +119,8 @@ const Login = () => {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" size="lg">
-              Logga in
+            <Button type="submit" className="w-full" size="lg" disabled={loading}>
+              {loading ? "Loggar in..." : "Logga in"}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </form>

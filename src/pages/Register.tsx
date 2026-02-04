@@ -1,23 +1,128 @@
 import { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Building2, Mail, Lock, ArrowRight, ArrowLeft } from "lucide-react";
+import { User, Building2, Mail, Lock, ArrowRight, ArrowLeft, Stethoscope, BarChart3, Search, Users, Apple, Brain } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
-type Role = "player" | "club" | null;
+type Role = "player" | "club" | "physiotherapist" | "coach" | "analyst" | "scout" | "nutritionist" | "mental_coach" | null;
+
+interface RoleOption {
+  id: Role;
+  label: string;
+  description: string;
+  icon: React.ElementType;
+  category: "main" | "staff";
+}
+
+const roleOptions: RoleOption[] = [
+  { id: "player", label: "Spelare", description: "Skapa en profil och bli upptäckt", icon: User, category: "main" },
+  { id: "club", label: "Klubb / Förening", description: "Sök och rekrytera spelare", icon: Building2, category: "main" },
+  { id: "coach", label: "Tränare", description: "Erbjud träning och coachning", icon: Users, category: "staff" },
+  { id: "physiotherapist", label: "Fysioterapeut", description: "Rehabilitering och skadeförebyggande", icon: Stethoscope, category: "staff" },
+  { id: "analyst", label: "Analytiker", description: "Matchanalys och spelarstatistik", icon: BarChart3, category: "staff" },
+  { id: "scout", label: "Scout", description: "Scouting och talangidentifiering", icon: Search, category: "staff" },
+  { id: "nutritionist", label: "Nutritionist", description: "Kostplanering och näringslära", icon: Apple, category: "staff" },
+  { id: "mental_coach", label: "Mentalcoach", description: "Mental träning och prestation", icon: Brain, category: "staff" },
+];
+
+const roleLabels: Record<Exclude<Role, null>, string> = {
+  player: "Spelarregistrering",
+  club: "Klubbregistrering",
+  coach: "Tränarregistrering",
+  physiotherapist: "Fysioterapeutregistrering",
+  analyst: "Analytikerregistrering",
+  scout: "Scoutregistrering",
+  nutritionist: "Nutritionistregistrering",
+  mental_coach: "Mentalcoach-registrering",
+};
 
 const Register = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const initialRole = searchParams.get("role") as Role;
   const [selectedRole, setSelectedRole] = useState<Role>(initialRole);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showStaffRoles, setShowStaffRoles] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const mainRoles = roleOptions.filter(r => r.category === "main");
+  const staffRoles = roleOptions.filter(r => r.category === "staff");
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Register:", { role: selectedRole, email, password });
+    if (!selectedRole) return;
+
+    setLoading(true);
+    try {
+      // Sign up the user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          }
+        }
+      });
+
+      if (authError) throw authError;
+
+      if (authData.user) {
+        // Create profile
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: authData.user.id,
+            full_name: fullName,
+          });
+
+        if (profileError) throw profileError;
+
+        // Create user role
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert({
+            user_id: authData.user.id,
+            role: selectedRole,
+          });
+
+        if (roleError) throw roleError;
+
+        // If staff role, create staff profile
+        const isStaffRole = ['physiotherapist', 'coach', 'analyst', 'scout', 'nutritionist', 'mental_coach'].includes(selectedRole);
+        if (isStaffRole) {
+          const { error: staffError } = await supabase
+            .from('staff_profiles')
+            .insert({
+              user_id: authData.user.id,
+            });
+
+          if (staffError) throw staffError;
+        }
+
+        toast({
+          title: "Konto skapat!",
+          description: "Verifiera din e-post för att slutföra registreringen.",
+        });
+        navigate("/login");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Fel vid registrering",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const getSelectedRoleOption = () => roleOptions.find(r => r.id === selectedRole);
 
   return (
     <div className="min-h-screen flex">
@@ -44,48 +149,83 @@ const Register = () => {
           </p>
 
           {!selectedRole ? (
-            <div className="space-y-3">
-              <button
-                onClick={() => setSelectedRole("player")}
-                className="w-full p-5 rounded-2xl border-2 border-border bg-card hover:border-foreground/30 transition-all text-left group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-foreground flex items-center justify-center">
-                    <User className="h-6 w-6 text-background" />
-                  </div>
-                  <div>
-                    <h3 className="font-display font-semibold text-foreground">Jag är spelare</h3>
-                    <p className="text-sm text-muted-foreground">Skapa en profil och bli upptäckt</p>
-                  </div>
-                </div>
-              </button>
+            <div className="space-y-4">
+              {/* Main roles */}
+              <div className="space-y-3">
+                {mainRoles.map((role) => {
+                  const IconComponent = role.icon;
+                  return (
+                    <button
+                      key={role.id}
+                      onClick={() => setSelectedRole(role.id)}
+                      className="w-full p-5 rounded-2xl border-2 border-border bg-card hover:border-foreground/30 transition-all text-left group"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-foreground flex items-center justify-center">
+                          <IconComponent className="h-6 w-6 text-background" />
+                        </div>
+                        <div>
+                          <h3 className="font-display font-semibold text-foreground">Jag är {role.label.toLowerCase()}</h3>
+                          <p className="text-sm text-muted-foreground">{role.description}</p>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
 
-              <button
-                onClick={() => setSelectedRole("club")}
-                className="w-full p-5 rounded-2xl border-2 border-border bg-card hover:border-foreground/30 transition-all text-left group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-foreground flex items-center justify-center">
-                    <Building2 className="h-6 w-6 text-background" />
-                  </div>
-                  <div>
-                    <h3 className="font-display font-semibold text-foreground">Jag representerar en klubb</h3>
-                    <p className="text-sm text-muted-foreground">Sök och rekrytera spelare</p>
-                  </div>
+              {/* Staff roles toggle */}
+              <div className="pt-2">
+                <button
+                  onClick={() => setShowStaffRoles(!showStaffRoles)}
+                  className="w-full p-4 rounded-xl border border-dashed border-border bg-transparent hover:border-neon/50 hover:bg-neon/5 transition-all text-center"
+                >
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {showStaffRoles ? "Dölj" : "Visa"} professionella roller (tränare, fysio, etc.)
+                  </span>
+                </button>
+              </div>
+
+              {/* Staff roles grid */}
+              {showStaffRoles && (
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  {staffRoles.map((role) => {
+                    const IconComponent = role.icon;
+                    return (
+                      <button
+                        key={role.id}
+                        onClick={() => setSelectedRole(role.id)}
+                        className="p-4 rounded-xl border-2 border-border bg-card hover:border-neon/50 hover:bg-neon/5 transition-all text-left"
+                      >
+                        <div className="flex flex-col gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-neon/10 flex items-center justify-center">
+                            <IconComponent className="h-5 w-5 text-neon" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-foreground text-sm">{role.label}</h3>
+                            <p className="text-xs text-muted-foreground mt-0.5">{role.description}</p>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
-              </button>
+              )}
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="flex items-center gap-3 p-4 rounded-xl bg-muted mb-6">
-                {selectedRole === "player" ? (
-                  <User className="h-5 w-5 text-foreground" />
-                ) : (
-                  <Building2 className="h-5 w-5 text-foreground" />
+                {getSelectedRoleOption() && (
+                  <>
+                    {(() => {
+                      const IconComponent = getSelectedRoleOption()!.icon;
+                      return <IconComponent className="h-5 w-5 text-foreground" />;
+                    })()}
+                    <span className="text-sm font-medium text-foreground">
+                      {roleLabels[selectedRole!]}
+                    </span>
+                  </>
                 )}
-                <span className="text-sm font-medium text-foreground">
-                  {selectedRole === "player" ? "Spelarregistrering" : "Klubbregistrering"}
-                </span>
                 <button
                   type="button"
                   onClick={() => setSelectedRole(null)}
@@ -93,6 +233,22 @@ const Register = () => {
                 >
                   Ändra
                 </button>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Fullständigt namn</Label>
+                <div className="relative">
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="Ditt namn"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -128,8 +284,8 @@ const Register = () => {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full" size="lg">
-                Skapa konto
+              <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                {loading ? "Skapar konto..." : "Skapa konto"}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
 
@@ -159,7 +315,7 @@ const Register = () => {
             Välkommen till SportsIN
           </h2>
           <p className="text-background/70">
-            Plattformen som kopplar samman ambitiösa fotbollsspelare med klubbar som söker talang.
+            Plattformen som kopplar samman fotbollsspelare, klubbar och professionell personal.
           </p>
         </div>
       </div>
