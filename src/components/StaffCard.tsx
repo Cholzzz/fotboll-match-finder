@@ -1,8 +1,15 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin, ArrowRight, Award, Briefcase } from "lucide-react";
+import { MapPin, ArrowRight, Award, Briefcase, Clock, CreditCard } from "lucide-react";
 
 export type StaffRole = "coach" | "physio" | "analyst" | "scout" | "nutritionist";
+
+export interface StaffPricing {
+  sessionPrice: number;
+  sessionDuration: number; // in minutes
+  packagePrice?: number;
+  packageSessions?: number;
+}
 
 export interface StaffCardProps {
   id: string;
@@ -13,6 +20,7 @@ export interface StaffCardProps {
   region: string;
   certifications?: string[];
   imageUrl?: string;
+  pricing?: StaffPricing;
 }
 
 const roleLabels: Record<StaffRole, string> = {
@@ -39,7 +47,8 @@ const StaffCard = ({
   experience, 
   region, 
   certifications,
-  imageUrl 
+  imageUrl,
+  pricing
 }: StaffCardProps) => {
   return (
     <div className="group p-5 rounded-2xl border border-border bg-card hover:border-foreground/20 transition-all">
@@ -79,6 +88,29 @@ const StaffCard = ({
         </div>
       </div>
 
+      {/* Pricing */}
+      {pricing && (
+        <div className="mt-4 p-3 rounded-xl bg-neon/5 border border-neon/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CreditCard className="h-4 w-4 text-neon" />
+              <span className="font-display font-bold text-foreground">{pricing.sessionPrice} kr</span>
+              <span className="text-xs text-muted-foreground">/ session</span>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              {pricing.sessionDuration} min
+            </div>
+          </div>
+          {pricing.packagePrice && pricing.packageSessions && (
+            <div className="mt-2 text-xs text-muted-foreground">
+              <span className="text-neon font-medium">{pricing.packageSessions}x paket:</span>{" "}
+              {pricing.packagePrice} kr ({Math.round(pricing.packagePrice / pricing.packageSessions)} kr/session)
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Certifications */}
       {certifications && certifications.length > 0 && (
         <div className="flex items-center gap-2 mt-4 flex-wrap">
@@ -97,7 +129,7 @@ const StaffCard = ({
       {/* Action */}
       <Link to={`/staff/${id}`} className="block mt-4">
         <Button variant="secondary" size="sm" className="w-full group-hover:bg-foreground group-hover:text-background transition-colors">
-          Visa profil
+          Visa profil & boka
           <ArrowRight className="h-3.5 w-3.5 ml-1" />
         </Button>
       </Link>
