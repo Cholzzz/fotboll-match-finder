@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
   ArrowLeft, 
   MapPin, 
@@ -14,9 +16,13 @@ import {
   FileText,
   Star,
   Users,
-  Trophy
+  Trophy,
+  CreditCard,
+  Clock,
+  Check,
+  CalendarDays
 } from "lucide-react";
-import { StaffRole } from "@/components/StaffCard";
+import { StaffRole, StaffPricing } from "@/components/StaffCard";
 
 interface StaffMember {
   id: string;
@@ -33,6 +39,8 @@ interface StaffMember {
   previousClubs: { club: string; role: string; years: string }[];
   achievements: string[];
   availability: string;
+  pricing: StaffPricing;
+  services: { name: string; description: string; price: number; duration: number }[];
 }
 
 const roleLabels: Record<StaffRole, string> = {
@@ -78,7 +86,19 @@ const mockStaffData: Record<string, StaffMember> = {
       "Utvecklat 5 spelare till A-lagsnivå",
       "Bästa ungdomstränare SvFF 2022"
     ],
-    availability: "Tillgänglig från juli 2024"
+    availability: "Tillgänglig från juli 2024",
+    pricing: {
+      sessionPrice: 1200,
+      sessionDuration: 60,
+      packagePrice: 5000,
+      packageSessions: 5
+    },
+    services: [
+      { name: "Individuell träning", description: "Personligt anpassad teknikträning", price: 1200, duration: 60 },
+      { name: "Videoanalys", description: "Analys av ditt spel med feedback", price: 800, duration: 45 },
+      { name: "Mental coaching", description: "Fokus på mental styrka och prestation", price: 1000, duration: 60 },
+      { name: "Gruppträning (max 4)", description: "Träning i liten grupp", price: 600, duration: 90 }
+    ]
   },
   s2: {
     id: "s2",
@@ -104,13 +124,28 @@ const mockStaffData: Record<string, StaffMember> = {
       "Utvecklat rehabiliteringsprogram för korsbandsskador",
       "Föreläsare vid SvFF:s medicinska konferens"
     ],
-    availability: "Tillgänglig omgående"
+    availability: "Tillgänglig omgående",
+    pricing: {
+      sessionPrice: 900,
+      sessionDuration: 45,
+      packagePrice: 4000,
+      packageSessions: 5
+    },
+    services: [
+      { name: "Bedömning & Diagnostik", description: "Initial utvärdering av skada/problem", price: 900, duration: 45 },
+      { name: "Rehabiliteringspass", description: "Guidad rehab för skador", price: 900, duration: 45 },
+      { name: "Skadeförebyggande", description: "Screening och preventivt arbete", price: 1100, duration: 60 },
+      { name: "Tejpning & Behandling", description: "Akut behandling och tejpning", price: 500, duration: 30 },
+      { name: "Rehab-program (5 pass)", description: "Komplett rehabiliteringspaket", price: 4000, duration: 45 }
+    ]
   }
 };
 
 const StaffProfile = () => {
   const { id } = useParams<{ id: string }>();
   const staff = id ? mockStaffData[id] : null;
+  const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [bookingOpen, setBookingOpen] = useState(false);
 
   if (!staff) {
     return (
@@ -127,6 +162,11 @@ const StaffProfile = () => {
     );
   }
 
+  const handleBookService = (serviceName: string) => {
+    setSelectedService(serviceName);
+    setBookingOpen(true);
+  };
+
   return (
     <Layout>
       <div className="container py-8">
@@ -136,185 +176,276 @@ const StaffProfile = () => {
           <span className="text-sm">Tillbaka till sökning</span>
         </Link>
 
-        {/* Header */}
-        <div className="rounded-2xl border border-border bg-card p-6 md:p-8 mb-6">
-          <div className="flex flex-col md:flex-row gap-6">
-            {/* Avatar */}
-            <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl bg-foreground flex items-center justify-center flex-shrink-0">
-              <span className="font-display text-4xl md:text-5xl font-bold text-background">
-                {staff.name.split(" ").map(n => n[0]).join("")}
-              </span>
-            </div>
-
-            {/* Info */}
-            <div className="flex-1">
-              <div className="flex flex-wrap items-start gap-3 mb-3">
-                <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                  {staff.name}
-                </h1>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium border ${roleColors[staff.role]}`}>
-                  {roleLabels[staff.role]}
-                </span>
-              </div>
-              
-              <p className="text-lg text-muted-foreground mb-4">{staff.specialization}</p>
-              
-              <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
-                <span className="flex items-center gap-1.5">
-                  <Briefcase className="h-4 w-4" />
-                  {staff.experience} års erfarenhet
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <MapPin className="h-4 w-4" />
-                  {staff.region}
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Calendar className="h-4 w-4" />
-                  {staff.availability}
-                </span>
-              </div>
-
-              {/* Certifications */}
-              <div className="flex flex-wrap gap-2">
-                {staff.certifications.map((cert, index) => (
-                  <span key={index} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-neon/10 text-neon text-xs font-medium">
-                    <Award className="h-3 w-3" />
-                    {cert}
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Header */}
+            <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
+              <div className="flex flex-col md:flex-row gap-6">
+                {/* Avatar */}
+                <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl bg-foreground flex items-center justify-center flex-shrink-0">
+                  <span className="font-display text-4xl md:text-5xl font-bold text-background">
+                    {staff.name.split(" ").map(n => n[0]).join("")}
                   </span>
-                ))}
+                </div>
+
+                {/* Info */}
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-start gap-3 mb-3">
+                    <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
+                      {staff.name}
+                    </h1>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium border ${roleColors[staff.role]}`}>
+                      {roleLabels[staff.role]}
+                    </span>
+                  </div>
+                  
+                  <p className="text-lg text-muted-foreground mb-4">{staff.specialization}</p>
+                  
+                  <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
+                    <span className="flex items-center gap-1.5">
+                      <Briefcase className="h-4 w-4" />
+                      {staff.experience} års erfarenhet
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <MapPin className="h-4 w-4" />
+                      {staff.region}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <Calendar className="h-4 w-4" />
+                      {staff.availability}
+                    </span>
+                  </div>
+
+                  {/* Certifications */}
+                  <div className="flex flex-wrap gap-2">
+                    {staff.certifications.map((cert, index) => (
+                      <span key={index} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-neon/10 text-neon text-xs font-medium">
+                        <Award className="h-3 w-3" />
+                        {cert}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Contact Button */}
-            <div className="flex-shrink-0">
-              <Button className="w-full md:w-auto btn-glow">
-                <Mail className="h-4 w-4 mr-2" />
-                Kontakta
-              </Button>
+            {/* Tabs */}
+            <Tabs defaultValue="about" className="w-full">
+              <TabsList className="mb-6 w-full justify-start overflow-x-auto">
+                <TabsTrigger value="about" className="gap-2">
+                  <FileText className="h-4 w-4" />
+                  Om
+                </TabsTrigger>
+                <TabsTrigger value="services" className="gap-2">
+                  <CreditCard className="h-4 w-4" />
+                  Tjänster & Priser
+                </TabsTrigger>
+                <TabsTrigger value="experience" className="gap-2">
+                  <Briefcase className="h-4 w-4" />
+                  Erfarenhet
+                </TabsTrigger>
+                <TabsTrigger value="achievements" className="gap-2">
+                  <Trophy className="h-4 w-4" />
+                  Meriter
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="about">
+                <div className="space-y-4">
+                  <div className="rounded-2xl border border-border bg-card p-6">
+                    <h3 className="font-display text-lg font-semibold text-foreground mb-4">Biografi</h3>
+                    <p className="text-muted-foreground leading-relaxed">{staff.bio}</p>
+                  </div>
+                  
+                  <div className="rounded-2xl border border-border bg-card p-6">
+                    <h3 className="font-display text-lg font-semibold text-foreground mb-4">Utbildning</h3>
+                    <div className="space-y-3">
+                      {staff.education.map((edu, index) => (
+                        <div key={index} className="flex items-start gap-3 p-3 rounded-xl bg-muted/50">
+                          <GraduationCap className="h-5 w-5 text-neon mt-0.5" />
+                          <div>
+                            <h4 className="font-medium text-foreground">{edu.degree}</h4>
+                            <p className="text-sm text-muted-foreground">{edu.institution} • {edu.year}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="services">
+                <div className="rounded-2xl border border-border bg-card p-6">
+                  <h3 className="font-display text-lg font-semibold text-foreground mb-6">Tillgängliga tjänster</h3>
+                  <div className="space-y-4">
+                    {staff.services.map((service, index) => (
+                      <div key={index} className="p-4 rounded-xl border border-border bg-background hover:border-neon/30 transition-colors">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-foreground mb-1">{service.name}</h4>
+                            <p className="text-sm text-muted-foreground mb-2">{service.description}</p>
+                            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {service.duration} min
+                              </span>
+                            </div>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <div className="font-display font-bold text-lg text-foreground">{service.price} kr</div>
+                            <Button 
+                              size="sm" 
+                              className="mt-2 btn-glow"
+                              onClick={() => handleBookService(service.name)}
+                            >
+                              <CalendarDays className="h-3.5 w-3.5 mr-1" />
+                              Boka
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="experience">
+                <div className="rounded-2xl border border-border bg-card p-6">
+                  <h3 className="font-display text-lg font-semibold text-foreground mb-6">Tidigare klubbar</h3>
+                  <div className="space-y-4">
+                    {staff.previousClubs.map((club, index) => (
+                      <div key={index} className="flex items-start gap-4 p-4 rounded-xl bg-muted/50">
+                        <div className="w-12 h-12 rounded-lg bg-foreground/10 flex items-center justify-center flex-shrink-0">
+                          <Users className="h-6 w-6 text-foreground" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-foreground">{club.club}</h4>
+                          <p className="text-sm text-muted-foreground">{club.role}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{club.years}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="achievements">
+                <div className="rounded-2xl border border-border bg-card p-6">
+                  <h3 className="font-display text-lg font-semibold text-foreground mb-6">Meriter & Utmärkelser</h3>
+                  <div className="space-y-3">
+                    {staff.achievements.map((achievement, index) => (
+                      <div key={index} className="flex items-center gap-3 p-4 rounded-xl bg-muted/50">
+                        <Star className="h-5 w-5 text-neon flex-shrink-0" />
+                        <span className="text-foreground">{achievement}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          {/* Sidebar - Pricing & Booking */}
+          <div className="space-y-4">
+            {/* Quick Pricing Card */}
+            <div className="rounded-2xl border border-neon/30 bg-card p-6 sticky top-24">
+              <div className="flex items-center gap-2 mb-4">
+                <CreditCard className="h-5 w-5 text-neon" />
+                <h3 className="font-display text-lg font-semibold text-foreground">Priser</h3>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="p-4 rounded-xl bg-neon/5 border border-neon/20">
+                  <div className="text-sm text-muted-foreground mb-1">Enskild session</div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-display text-3xl font-bold text-foreground">{staff.pricing.sessionPrice} kr</span>
+                    <span className="text-sm text-muted-foreground">/ {staff.pricing.sessionDuration} min</span>
+                  </div>
+                </div>
+
+                {staff.pricing.packagePrice && staff.pricing.packageSessions && (
+                  <div className="p-4 rounded-xl bg-muted/50 border border-border">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-sm text-muted-foreground">Paketpris ({staff.pricing.packageSessions} sessioner)</span>
+                      <span className="px-1.5 py-0.5 rounded bg-neon/10 text-neon text-xs font-medium">Spara {Math.round((1 - (staff.pricing.packagePrice / (staff.pricing.sessionPrice * staff.pricing.packageSessions))) * 100)}%</span>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="font-display text-2xl font-bold text-foreground">{staff.pricing.packagePrice} kr</span>
+                      <span className="text-sm text-muted-foreground">({Math.round(staff.pricing.packagePrice / staff.pricing.packageSessions)} kr/session)</span>
+                    </div>
+                  </div>
+                )}
+
+                <Dialog open={bookingOpen} onOpenChange={setBookingOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="w-full btn-glow" size="lg">
+                      <CalendarDays className="h-4 w-4 mr-2" />
+                      Boka session
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="font-display">Boka {selectedService || "session"}</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="p-4 rounded-xl bg-muted/50">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-10 h-10 rounded-lg bg-foreground flex items-center justify-center">
+                            <span className="font-display font-bold text-background">
+                              {staff.name.split(" ").map(n => n[0]).join("")}
+                            </span>
+                          </div>
+                          <div>
+                            <div className="font-semibold text-foreground">{staff.name}</div>
+                            <div className="text-sm text-muted-foreground">{roleLabels[staff.role]}</div>
+                          </div>
+                        </div>
+                        {selectedService && (
+                          <div className="text-sm text-muted-foreground">
+                            Vald tjänst: <span className="text-foreground font-medium">{selectedService}</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Check className="h-4 w-4 text-neon" />
+                          Bekräftelse skickas via email
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Check className="h-4 w-4 text-neon" />
+                          Avbokning möjlig 24h innan
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Check className="h-4 w-4 text-neon" />
+                          Betalning sker vid besök
+                        </div>
+                      </div>
+
+                      <Button className="w-full btn-glow" size="lg">
+                        <Mail className="h-4 w-4 mr-2" />
+                        Skicka bokningsförfrågan
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              {/* Contact Info */}
+              <div className="mt-6 pt-6 border-t border-border space-y-3">
+                <div className="flex items-center gap-3 text-sm">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-foreground">{staff.email}</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-foreground">{staff.phone}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-
-        {/* Tabs */}
-        <Tabs defaultValue="about" className="w-full">
-          <TabsList className="mb-6 w-full justify-start overflow-x-auto">
-            <TabsTrigger value="about" className="gap-2">
-              <FileText className="h-4 w-4" />
-              Om
-            </TabsTrigger>
-            <TabsTrigger value="experience" className="gap-2">
-              <Briefcase className="h-4 w-4" />
-              Erfarenhet
-            </TabsTrigger>
-            <TabsTrigger value="education" className="gap-2">
-              <GraduationCap className="h-4 w-4" />
-              Utbildning
-            </TabsTrigger>
-            <TabsTrigger value="achievements" className="gap-2">
-              <Trophy className="h-4 w-4" />
-              Meriter
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="about">
-            <div className="grid lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <div className="rounded-2xl border border-border bg-card p-6">
-                  <h3 className="font-display text-lg font-semibold text-foreground mb-4">Biografi</h3>
-                  <p className="text-muted-foreground leading-relaxed">{staff.bio}</p>
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="rounded-2xl border border-border bg-card p-6">
-                  <h3 className="font-display text-lg font-semibold text-foreground mb-4">Kontakt</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 text-sm">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-foreground">{staff.email}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-foreground">{staff.phone}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border border-border bg-card p-6">
-                  <h3 className="font-display text-lg font-semibold text-foreground mb-4">Snabbfakta</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Roll</span>
-                      <span className="text-foreground font-medium">{roleLabels[staff.role]}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Erfarenhet</span>
-                      <span className="text-foreground font-medium">{staff.experience} år</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Region</span>
-                      <span className="text-foreground font-medium">{staff.region}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="experience">
-            <div className="rounded-2xl border border-border bg-card p-6">
-              <h3 className="font-display text-lg font-semibold text-foreground mb-6">Tidigare klubbar</h3>
-              <div className="space-y-4">
-                {staff.previousClubs.map((club, index) => (
-                  <div key={index} className="flex items-start gap-4 p-4 rounded-xl bg-muted/50">
-                    <div className="w-12 h-12 rounded-lg bg-foreground/10 flex items-center justify-center flex-shrink-0">
-                      <Users className="h-6 w-6 text-foreground" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-foreground">{club.club}</h4>
-                      <p className="text-sm text-muted-foreground">{club.role}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{club.years}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="education">
-            <div className="rounded-2xl border border-border bg-card p-6">
-              <h3 className="font-display text-lg font-semibold text-foreground mb-6">Utbildning & Certifieringar</h3>
-              <div className="space-y-4">
-                {staff.education.map((edu, index) => (
-                  <div key={index} className="flex items-start gap-4 p-4 rounded-xl bg-muted/50">
-                    <div className="w-12 h-12 rounded-lg bg-neon/10 flex items-center justify-center flex-shrink-0">
-                      <GraduationCap className="h-6 w-6 text-neon" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-foreground">{edu.degree}</h4>
-                      <p className="text-sm text-muted-foreground">{edu.institution}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{edu.year}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="achievements">
-            <div className="rounded-2xl border border-border bg-card p-6">
-              <h3 className="font-display text-lg font-semibold text-foreground mb-6">Meriter & Utmärkelser</h3>
-              <div className="space-y-3">
-                {staff.achievements.map((achievement, index) => (
-                  <div key={index} className="flex items-center gap-3 p-4 rounded-xl bg-muted/50">
-                    <Star className="h-5 w-5 text-neon flex-shrink-0" />
-                    <span className="text-foreground">{achievement}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
       </div>
     </Layout>
   );

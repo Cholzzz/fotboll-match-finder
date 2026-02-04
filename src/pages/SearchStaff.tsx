@@ -15,7 +15,13 @@ const mockStaff: StaffCardProps[] = [
     specialization: "Ungdomsutveckling",
     experience: 15,
     region: "Stockholm",
-    certifications: ["UEFA A-licens", "SvFF Elitlicens"]
+    certifications: ["UEFA A-licens", "SvFF Elitlicens"],
+    pricing: {
+      sessionPrice: 1200,
+      sessionDuration: 60,
+      packagePrice: 5000,
+      packageSessions: 5
+    }
   },
   { 
     id: "s2", 
@@ -24,7 +30,13 @@ const mockStaff: StaffCardProps[] = [
     specialization: "Idrottsskador & Rehabilitering",
     experience: 10,
     region: "Göteborg",
-    certifications: ["Leg. Fysioterapeut", "Sportmedicin"]
+    certifications: ["Leg. Fysioterapeut", "Sportmedicin"],
+    pricing: {
+      sessionPrice: 900,
+      sessionDuration: 45,
+      packagePrice: 4000,
+      packageSessions: 5
+    }
   },
   { 
     id: "s3", 
@@ -33,7 +45,13 @@ const mockStaff: StaffCardProps[] = [
     specialization: "Videoanalys & Taktik",
     experience: 7,
     region: "Malmö",
-    certifications: ["UEFA B-licens", "Data Analytics"]
+    certifications: ["UEFA B-licens", "Data Analytics"],
+    pricing: {
+      sessionPrice: 800,
+      sessionDuration: 60,
+      packagePrice: 3500,
+      packageSessions: 5
+    }
   },
   { 
     id: "s4", 
@@ -42,7 +60,11 @@ const mockStaff: StaffCardProps[] = [
     specialization: "Skandinavisk talangspaning",
     experience: 12,
     region: "Stockholm",
-    certifications: ["SvFF Scoututbildning"]
+    certifications: ["SvFF Scoututbildning"],
+    pricing: {
+      sessionPrice: 1500,
+      sessionDuration: 90,
+    }
   },
   { 
     id: "s5", 
@@ -51,7 +73,13 @@ const mockStaff: StaffCardProps[] = [
     specialization: "Fysisk träning & Kondition",
     experience: 8,
     region: "Uppsala",
-    certifications: ["UEFA B-licens", "Strength & Conditioning"]
+    certifications: ["UEFA B-licens", "Strength & Conditioning"],
+    pricing: {
+      sessionPrice: 950,
+      sessionDuration: 60,
+      packagePrice: 4200,
+      packageSessions: 5
+    }
   },
   { 
     id: "s6", 
@@ -60,7 +88,13 @@ const mockStaff: StaffCardProps[] = [
     specialization: "Idrottsnutrition",
     experience: 6,
     region: "Stockholm",
-    certifications: ["Leg. Dietist", "Sports Nutrition Cert."]
+    certifications: ["Leg. Dietist", "Sports Nutrition Cert."],
+    pricing: {
+      sessionPrice: 750,
+      sessionDuration: 45,
+      packagePrice: 3200,
+      packageSessions: 5
+    }
   },
   { 
     id: "s7", 
@@ -69,7 +103,13 @@ const mockStaff: StaffCardProps[] = [
     specialization: "Prestationsoptimering",
     experience: 14,
     region: "Göteborg",
-    certifications: ["Leg. Fysioterapeut", "Manual Terapi"]
+    certifications: ["Leg. Fysioterapeut", "Manual Terapi"],
+    pricing: {
+      sessionPrice: 1100,
+      sessionDuration: 60,
+      packagePrice: 4800,
+      packageSessions: 5
+    }
   },
   { 
     id: "s8", 
@@ -78,7 +118,13 @@ const mockStaff: StaffCardProps[] = [
     specialization: "Motståndaranalys",
     experience: 5,
     region: "Malmö",
-    certifications: ["SvFF Analytikerutbildning"]
+    certifications: ["SvFF Analytikerutbildning"],
+    pricing: {
+      sessionPrice: 700,
+      sessionDuration: 60,
+      packagePrice: 3000,
+      packageSessions: 5
+    }
   },
 ];
 
