@@ -59,58 +59,25 @@ const Register = () => {
 
     setLoading(true);
     try {
-      // Sign up the user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          emailRedirectTo: window.location.origin,
           data: {
             full_name: fullName,
+            role: selectedRole,
           }
         }
       });
 
       if (authError) throw authError;
 
-      if (authData.user) {
-        // Create profile
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            user_id: authData.user.id,
-            full_name: fullName,
-          });
-
-        if (profileError) throw profileError;
-
-        // Create user role
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .insert({
-            user_id: authData.user.id,
-            role: selectedRole,
-          });
-
-        if (roleError) throw roleError;
-
-        // If staff role, create staff profile
-        const isStaffRole = ['physiotherapist', 'coach', 'analyst', 'scout', 'nutritionist', 'mental_coach'].includes(selectedRole);
-        if (isStaffRole) {
-          const { error: staffError } = await supabase
-            .from('staff_profiles')
-            .insert({
-              user_id: authData.user.id,
-            });
-
-          if (staffError) throw staffError;
-        }
-
-        toast({
-          title: "Konto skapat!",
-          description: "Verifiera din e-post för att slutföra registreringen.",
-        });
-        navigate("/login");
-      }
+      toast({
+        title: "Konto skapat!",
+        description: "Verifiera din e-post för att slutföra registreringen.",
+      });
+      navigate("/login");
     } catch (error: any) {
       toast({
         title: "Fel vid registrering",
