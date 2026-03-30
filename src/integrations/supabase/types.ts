@@ -56,6 +56,36 @@ export type Database = {
         }
         Relationships: []
       }
+      highlights: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          position: string | null
+          title: string | null
+          user_id: string
+          video_url: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          position?: string | null
+          title?: string | null
+          user_id: string
+          video_url: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          position?: string | null
+          title?: string | null
+          user_id?: string
+          video_url?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
