@@ -86,6 +86,42 @@ export type Database = {
         }
         Relationships: []
       }
+      player_profiles: {
+        Row: {
+          age: number | null
+          bio: string | null
+          created_at: string
+          id: string
+          position: string | null
+          preferred_foot: string | null
+          region: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          age?: number | null
+          bio?: string | null
+          created_at?: string
+          id?: string
+          position?: string | null
+          preferred_foot?: string | null
+          region?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          age?: number | null
+          bio?: string | null
+          created_at?: string
+          id?: string
+          position?: string | null
+          preferred_foot?: string | null
+          region?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
