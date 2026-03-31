@@ -101,10 +101,12 @@ const MyProfile = () => {
 
     if (error) {
       toast({ title: "Fel", description: error.message, variant: "destructive" });
+      setSaving(false);
     } else {
       toast({ title: "Sparad!", description: "Din profil har uppdaterats." });
+      setSaving(false);
+      navigate(`/player/${user.id}`);
     }
-    setSaving(false);
   };
 
   if (authLoading || loading) {
