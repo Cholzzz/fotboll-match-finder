@@ -113,7 +113,7 @@ const Index = () => {
             </p>
             
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 animate-slide-up stagger-3">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-4 animate-slide-up stagger-3">
               <Link to="/register?role=player">
                 <Button variant="neon" size="xl" className="btn-glow w-full sm:w-auto group">
                   <User className="mr-2 h-5 w-5 transition-transform group-hover:scale-110" />
@@ -125,6 +125,12 @@ const Index = () => {
                 <Button variant="heroOutline" size="xl" className="w-full sm:w-auto group">
                   <Building2 className="mr-2 h-5 w-5" />
                   Jag representerar en klubb
+                </Button>
+              </Link>
+              <Link to="/register">
+                <Button variant="heroOutline" size="xl" className="w-full sm:w-auto group">
+                  <Stethoscope className="mr-2 h-5 w-5" />
+                  Jag är professionell personal
                 </Button>
               </Link>
             </div>
