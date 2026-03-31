@@ -12,6 +12,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import NotificationBell from "@/components/NotificationBell";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -103,6 +104,7 @@ const Header = () => {
         <div className="hidden lg:flex items-center gap-2">
           {!loading && user ? (
             <>
+              <NotificationBell />
               <Link to="/messages">
                 <Button variant="ghost" size="icon" className={isActive("/messages") ? "text-neon" : ""}>
                   <MessageSquare className="h-5 w-5" />
