@@ -48,10 +48,7 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showStaffRoles, setShowStaffRoles] = useState(false);
-
   const mainRoles = roleOptions.filter(r => r.category === "main");
-  const staffRoles = roleOptions.filter(r => r.category === "staff");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,43 +138,6 @@ const Register = () => {
                 })}
               </div>
 
-              {/* Staff roles toggle */}
-              <div className="pt-2">
-                <button
-                  onClick={() => setShowStaffRoles(!showStaffRoles)}
-                  className="w-full p-4 rounded-xl border border-dashed border-border bg-transparent hover:border-neon/50 hover:bg-neon/5 transition-all text-center"
-                >
-                  <span className="text-sm font-medium text-muted-foreground">
-                    {showStaffRoles ? "Dölj" : "Visa"} professionella roller (tränare, fysio, etc.)
-                  </span>
-                </button>
-              </div>
-
-              {/* Staff roles grid */}
-              {showStaffRoles && (
-                <div className="grid grid-cols-2 gap-3 pt-2">
-                  {staffRoles.map((role) => {
-                    const IconComponent = role.icon;
-                    return (
-                      <button
-                        key={role.id}
-                        onClick={() => setSelectedRole(role.id)}
-                        className="p-4 rounded-xl border-2 border-border bg-card hover:border-neon/50 hover:bg-neon/5 transition-all text-left"
-                      >
-                        <div className="flex flex-col gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-neon/10 flex items-center justify-center">
-                            <IconComponent className="h-5 w-5 text-neon" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-foreground text-sm">{role.label}</h3>
-                            <p className="text-xs text-muted-foreground mt-0.5">{role.description}</p>
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
