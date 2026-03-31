@@ -190,6 +190,11 @@ const Header = () => {
                       <User className="h-4 w-4" /> Min profil
                     </Button>
                   </Link>
+                  <Link to="/connections" onClick={() => setIsMenuOpen(false)}>
+                    <Button variant="outline" className="w-full gap-2">
+                      <Link2 className="h-4 w-4" /> Mitt nätverk
+                    </Button>
+                  </Link>
                   <Button variant="ghost" className="w-full gap-2 text-destructive" onClick={() => { handleLogout(); setIsMenuOpen(false); }}>
                     <LogOut className="h-4 w-4" /> Logga ut
                   </Button>
