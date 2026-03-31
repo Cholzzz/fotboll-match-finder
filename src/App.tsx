@@ -20,6 +20,7 @@ import PerformanceTests from "./pages/PerformanceTests";
 import NutritionPlan from "./pages/NutritionPlan";
 import MyProfile from "./pages/MyProfile";
 import MyStaffProfile from "./pages/MyStaffProfile";
+import Connections from "./pages/Connections";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
