@@ -23,7 +23,7 @@ const PlayerProfile = () => {
   React.useEffect(() => {
     if (!id || viewLogged.current) return;
     viewLogged.current = true;
-    supabase.from("profile_views").insert({
+    (supabase as any).from("profile_views").insert({
       player_user_id: id,
       viewer_user_id: user?.id ?? null,
     });
