@@ -18,7 +18,12 @@ import {
   Bookmark,
   Zap,
   Target,
-  CheckCircle2
+  CheckCircle2,
+  Users,
+  Stethoscope,
+  Search,
+  Apple,
+  Brain
 } from "lucide-react";
 
 const Index = () => {
