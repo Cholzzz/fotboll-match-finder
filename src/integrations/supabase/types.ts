@@ -347,6 +347,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_player_rankings: {
+        Args: { limit_count?: number }
+        Returns: {
+          age: number
+          avatar_url: string
+          full_name: string
+          player_position: string
+          player_user_id: string
+          region: string
+          view_count: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["user_role"]
