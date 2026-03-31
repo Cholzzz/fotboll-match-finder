@@ -11,9 +11,22 @@ import {
 } from "lucide-react";
 import ConnectButton from "@/components/ConnectButton";
 import { useConnectionCount } from "@/hooks/useConnections";
+import { useAuth } from "@/contexts/AuthContext";
 
 const PlayerProfile = () => {
   const { id } = useParams();
+  const { user } = useAuth();
+
+  // Log profile view
+  const viewLogged = React.useRef(false);
+  React.useEffect(() => {
+    if (!id || viewLogged.current) return;
+    viewLogged.current = true;
+    supabase.from("profile_views").insert({
+      player_user_id: id,
+      viewer_user_id: user?.id ?? null,
+    });
+  }, [id, user]);
 
   const { data: player, isLoading, error } = useQuery({
     queryKey: ["player-profile", id],
