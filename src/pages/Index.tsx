@@ -482,6 +482,9 @@ const Index = () => {
             ))}
           </div>
         </div>
+      </section>
+
+      {/* Trust Section - Final CTA */}
       <section className="py-24 lg:py-32 bg-gradient-hero relative overflow-hidden">
         {/* Background effects */}
         <div className="absolute inset-0">
