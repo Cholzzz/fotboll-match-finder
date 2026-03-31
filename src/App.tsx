@@ -19,6 +19,7 @@ import ClubDashboard from "./pages/ClubDashboard";
 import PerformanceTests from "./pages/PerformanceTests";
 import NutritionPlan from "./pages/NutritionPlan";
 import MyProfile from "./pages/MyProfile";
+import MyStaffProfile from "./pages/MyStaffProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
