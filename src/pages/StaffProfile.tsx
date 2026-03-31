@@ -7,11 +7,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { 
-  ArrowLeft, MapPin, Briefcase, Award, Mail, Phone, Calendar,
-  GraduationCap, FileText, Star, Users, Trophy, CreditCard,
-  Clock, Check, CalendarDays, Loader2
+  ArrowLeft, MapPin, Briefcase, Award, Mail, Phone,
+  FileText, CreditCard, Clock, Check, CalendarDays, Loader2
 } from "lucide-react";
-import { StaffRole, StaffPricing } from "@/components/StaffCard";
 import BookingCalendar from "@/components/BookingCalendar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -22,13 +20,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const roleLabels: Record<string, string> = {
-  coach: "Tränare",
-  physio: "Fysioterapeut",
-  physiotherapist: "Fysioterapeut",
-  analyst: "Analytiker",
-  scout: "Scout",
-  nutritionist: "Nutritionist",
-  mental_coach: "Mental coach",
+  coach: "Tränare", physio: "Fysioterapeut", physiotherapist: "Fysioterapeut",
+  analyst: "Analytiker", scout: "Scout", nutritionist: "Nutritionist", mental_coach: "Mental coach",
 };
 
 const roleColors: Record<string, string> = {
@@ -52,16 +45,30 @@ const StaffProfile = () => {
   const [bookingNotes, setBookingNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch staff profile from DB
-  const { data: staff, isLoading } = useQuery({
+  // Fetch staff profile
+  const { data: staff, isLoading: staffLoading } = useQuery({
     queryKey: ["staff-profile", id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("staff_profiles")
-        .select("*, profiles!inner(full_name, avatar_url, user_id, location, phone, bio)")
+        .select("*")
         .eq("user_id", id!)
         .maybeSingle();
       if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  // Fetch profile separately (no FK)
+  const { data: profileData } = useQuery({
+    queryKey: ["staff-profile-info", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("full_name, avatar_url, location, phone, bio")
+        .eq("user_id", id!)
+        .maybeSingle();
       return data;
     },
     enabled: !!id,
@@ -71,17 +78,13 @@ const StaffProfile = () => {
   const { data: roleData } = useQuery({
     queryKey: ["staff-role", id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", id!)
-        .maybeSingle();
+      const { data } = await supabase.from("user_roles").select("role").eq("user_id", id!).maybeSingle();
       return data;
     },
     enabled: !!id,
   });
 
-  // Fetch booked slots for this staff
+  // Fetch booked slots
   const { data: bookedSlots = [] } = useQuery({
     queryKey: ["staff-bookings", id],
     queryFn: async () => {
@@ -90,13 +93,12 @@ const StaffProfile = () => {
         .select("booking_date, start_time")
         .eq("staff_user_id", id!)
         .in("status", ["pending", "confirmed"]);
-      return (data || []).map((b) => ({
-        date: b.booking_date,
-        startTime: b.start_time?.slice(0, 5),
-      }));
+      return (data || []).map((b) => ({ date: b.booking_date, startTime: b.start_time?.slice(0, 5) }));
     },
     enabled: !!id,
   });
+
+  const isLoading = staffLoading;
 
   if (isLoading) {
     return (
@@ -109,7 +111,7 @@ const StaffProfile = () => {
     );
   }
 
-  if (!staff) {
+  if (!staff || !profileData) {
     return (
       <Layout>
         <div className="container py-16 text-center">
@@ -120,25 +122,17 @@ const StaffProfile = () => {
     );
   }
 
-  const name = staff.profiles.full_name;
+  const name = profileData.full_name;
   const role = roleData?.role || "coach";
   const services = (staff.services as any[] || []) as { name: string; description: string; price: number; duration: number }[];
   const certifications = (staff.certifications as string[] || []);
   const availableDays = (staff.available_days as string[] || ["monday", "tuesday", "wednesday", "thursday", "friday"]);
 
-  const handleSlotSelect = (date: Date, time: string) => {
-    setSelectedDate(date);
-    setSelectedTime(time);
-  };
-
-  const handleBookService = (serviceName: string) => {
-    setSelectedService(serviceName);
-    setBookingOpen(true);
-  };
+  const handleSlotSelect = (date: Date, time: string) => { setSelectedDate(date); setSelectedTime(time); };
+  const handleBookService = (serviceName: string) => { setSelectedService(serviceName); setBookingOpen(true); };
 
   const handleSubmitBooking = async () => {
     if (!selectedDate || !selectedTime) return;
-
     setIsSubmitting(true);
     try {
       if (!user) {
@@ -146,42 +140,18 @@ const StaffProfile = () => {
         navigate("/login");
         return;
       }
-
-      const endTime = format(
-        new Date(
-          new Date(`2000-01-01T${selectedTime}:00`).getTime() +
-          (staff.session_duration || 60) * 60000
-        ),
-        "HH:mm"
-      );
-
+      const endTime = format(new Date(new Date(`2000-01-01T${selectedTime}:00`).getTime() + (staff.session_duration || 60) * 60000), "HH:mm");
       const { error } = await supabase.from("bookings").insert({
-        staff_user_id: id!,
-        client_user_id: user.id,
-        booking_date: format(selectedDate, "yyyy-MM-dd"),
-        start_time: selectedTime,
-        end_time: endTime,
-        service_name: selectedService || "Session",
-        notes: bookingNotes || null,
+        staff_user_id: id!, client_user_id: user.id,
+        booking_date: format(selectedDate, "yyyy-MM-dd"), start_time: selectedTime, end_time: endTime,
+        service_name: selectedService || "Session", notes: bookingNotes || null,
       });
-
       if (error) throw error;
-
-      toast({
-        title: "Bokningsförfrågan skickad!",
-        description: `Din förfrågan för ${selectedService || "session"} den ${format(selectedDate, "d MMMM", { locale: sv })} kl. ${selectedTime} har skickats.`,
-      });
-
-      setBookingOpen(false);
-      setSelectedDate(null);
-      setSelectedTime(null);
-      setSelectedService(null);
-      setBookingNotes("");
+      toast({ title: "Bokningsförfrågan skickad!", description: `Din förfrågan för ${selectedService || "session"} den ${format(selectedDate, "d MMMM", { locale: sv })} kl. ${selectedTime} har skickats.` });
+      setBookingOpen(false); setSelectedDate(null); setSelectedTime(null); setSelectedService(null); setBookingNotes("");
     } catch (error: any) {
       toast({ title: "Fel", description: error.message, variant: "destructive" });
-    } finally {
-      setIsSubmitting(false);
-    }
+    } finally { setIsSubmitting(false); }
   };
 
   const selectedServiceDetails = services.find(s => s.name === selectedService);
@@ -190,8 +160,7 @@ const StaffProfile = () => {
     <Layout>
       <div className="container py-8">
         <Link to="/search-staff" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6">
-          <ArrowLeft className="h-4 w-4" />
-          <span className="text-sm">Tillbaka till sökning</span>
+          <ArrowLeft className="h-4 w-4" /><span className="text-sm">Tillbaka till sökning</span>
         </Link>
 
         <div className="grid lg:grid-cols-3 gap-6">
@@ -200,8 +169,8 @@ const StaffProfile = () => {
             <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
               <div className="flex flex-col md:flex-row gap-6">
                 <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl bg-foreground flex items-center justify-center flex-shrink-0 overflow-hidden">
-                  {staff.profiles.avatar_url ? (
-                    <img src={staff.profiles.avatar_url} alt={name} className="h-full w-full object-cover" />
+                  {profileData.avatar_url ? (
+                    <img src={profileData.avatar_url} alt={name} className="h-full w-full object-cover" />
                   ) : (
                     <span className="font-display text-4xl md:text-5xl font-bold text-background">
                       {name.split(" ").map((n: string) => n[0]).join("")}
@@ -217,19 +186,13 @@ const StaffProfile = () => {
                   </div>
                   {staff.specialization && <p className="text-lg text-muted-foreground mb-4">{staff.specialization}</p>}
                   <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
-                    {staff.experience_years && (
-                      <span className="flex items-center gap-1.5"><Briefcase className="h-4 w-4" />{staff.experience_years} års erfarenhet</span>
-                    )}
-                    {staff.profiles.location && (
-                      <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4" />{staff.profiles.location}</span>
-                    )}
+                    {staff.experience_years != null && <span className="flex items-center gap-1.5"><Briefcase className="h-4 w-4" />{staff.experience_years} års erfarenhet</span>}
+                    {profileData.location && <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4" />{profileData.location}</span>}
                   </div>
                   {certifications.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {certifications.map((cert, i) => (
-                        <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-neon/10 text-neon text-xs font-medium">
-                          <Award className="h-3 w-3" />{cert}
-                        </span>
+                        <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-neon/10 text-neon text-xs font-medium"><Award className="h-3 w-3" />{cert}</span>
                       ))}
                     </div>
                   )}
@@ -248,7 +211,7 @@ const StaffProfile = () => {
               <TabsContent value="about">
                 <div className="rounded-2xl border border-border bg-card p-6">
                   <h3 className="font-display text-lg font-semibold text-foreground mb-4">Biografi</h3>
-                  <p className="text-muted-foreground leading-relaxed">{staff.profiles.bio || "Ingen biografi ännu."}</p>
+                  <p className="text-muted-foreground leading-relaxed">{profileData.bio || "Ingen biografi ännu."}</p>
                 </div>
               </TabsContent>
 
@@ -267,9 +230,7 @@ const StaffProfile = () => {
                             </div>
                             <div className="text-right flex-shrink-0">
                               <div className="font-display font-bold text-lg text-foreground">{service.price} kr</div>
-                              <Button size="sm" className="mt-2 btn-glow" onClick={() => handleBookService(service.name)}>
-                                <CalendarDays className="h-3.5 w-3.5 mr-1" />Boka
-                              </Button>
+                              <Button size="sm" className="mt-2 btn-glow" onClick={() => handleBookService(service.name)}><CalendarDays className="h-3.5 w-3.5 mr-1" />Boka</Button>
                             </div>
                           </div>
                         </div>
@@ -330,9 +291,7 @@ const StaffProfile = () => {
                   <div className="p-4 rounded-xl bg-muted/50 border border-border">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-sm text-muted-foreground">Paketpris ({staff.package_sessions} sessioner)</span>
-                      <span className="px-1.5 py-0.5 rounded bg-neon/10 text-neon text-xs font-medium">
-                        Spara {Math.round((1 - (staff.package_price / (staff.session_price * staff.package_sessions))) * 100)}%
-                      </span>
+                      <span className="px-1.5 py-0.5 rounded bg-neon/10 text-neon text-xs font-medium">Spara {Math.round((1 - (staff.package_price / (staff.session_price * staff.package_sessions))) * 100)}%</span>
                     </div>
                     <div className="flex items-baseline gap-2">
                       <span className="font-display text-2xl font-bold text-foreground">{staff.package_price} kr</span>
@@ -346,9 +305,7 @@ const StaffProfile = () => {
                     <Button className="w-full btn-glow" size="lg"><CalendarDays className="h-4 w-4 mr-2" />Boka session</Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle className="font-display">Boka {selectedService || "session"}</DialogTitle>
-                    </DialogHeader>
+                    <DialogHeader><DialogTitle className="font-display">Boka {selectedService || "session"}</DialogTitle></DialogHeader>
                     <div className="space-y-4 py-4">
                       <div className="p-4 rounded-xl bg-muted/50">
                         <div className="flex items-center gap-3 mb-3">
@@ -399,14 +356,9 @@ const StaffProfile = () => {
                 </Dialog>
               </div>
 
-              {/* Contact */}
               <div className="mt-6 pt-6 border-t border-border space-y-3">
-                {staff.profiles.phone && (
-                  <div className="flex items-center gap-3 text-sm"><Phone className="h-4 w-4 text-muted-foreground" /><span className="text-foreground">{staff.profiles.phone}</span></div>
-                )}
-                {staff.profiles.location && (
-                  <div className="flex items-center gap-3 text-sm"><MapPin className="h-4 w-4 text-muted-foreground" /><span className="text-foreground">{staff.profiles.location}</span></div>
-                )}
+                {profileData.phone && <div className="flex items-center gap-3 text-sm"><Phone className="h-4 w-4 text-muted-foreground" /><span className="text-foreground">{profileData.phone}</span></div>}
+                {profileData.location && <div className="flex items-center gap-3 text-sm"><MapPin className="h-4 w-4 text-muted-foreground" /><span className="text-foreground">{profileData.location}</span></div>}
               </div>
             </div>
           </div>
