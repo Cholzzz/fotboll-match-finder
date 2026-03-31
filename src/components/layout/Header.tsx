@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Video, Users, Calendar, Activity, Apple, ChevronDown, UserCheck, User, LogOut, MessageSquare } from "lucide-react";
+import { Menu, X, Video, Users, Calendar, Activity, Apple, ChevronDown, UserCheck, User, LogOut, MessageSquare, Link2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
