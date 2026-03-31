@@ -27,6 +27,7 @@ const Header = () => {
     { path: "/dashboard", label: "Sök spelare", icon: Users },
     { path: "/search-staff", label: "Sök personal", icon: UserCheck },
     { path: "/trials", label: "Provträningar", icon: Calendar },
+    { path: "/rankings", label: "Topplista", icon: Trophy },
   ];
 
   const toolsNavLinks = [
