@@ -436,7 +436,52 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Trust Section - Final CTA */}
+      {/* For Professionals */}
+      <section className="py-24 lg:py-32 bg-muted/30">
+        <div className="container">
+          <div className="max-w-2xl mb-16">
+            <span className="badge-neon mb-6">
+              <Users className="h-4 w-4" />
+              För professionell personal
+            </span>
+            <h2 className="headline-section text-foreground">
+              Erbjud dina tjänster till spelare
+            </h2>
+            <p className="mt-4 text-muted-foreground text-lg">
+              Registrera dig som tränare, fysioterapeut, analytiker eller annan professionell personal – och bli bokningsbar direkt.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+            {[
+              { id: "coach", label: "Tränare", description: "Erbjud träning och coachning", icon: Users },
+              { id: "physiotherapist", label: "Fysioterapeut", description: "Rehabilitering och skadeförebyggande", icon: Stethoscope },
+              { id: "analyst", label: "Analytiker", description: "Matchanalys och spelarstatistik", icon: BarChart3 },
+              { id: "scout", label: "Scout", description: "Scouting och talangidentifiering", icon: Search },
+              { id: "nutritionist", label: "Nutritionist", description: "Kostplanering och näringslära", icon: Apple },
+              { id: "mental_coach", label: "Mentalcoach", description: "Mental träning och prestation", icon: Brain },
+            ].map((role) => (
+              <Link
+                key={role.id}
+                to={`/register?role=${role.id}`}
+                className="card-premium p-6 group block"
+              >
+                <div className="icon-glow mb-5 group-hover:scale-110 transition-transform">
+                  <role.icon className="h-6 w-6 text-foreground group-hover:text-neon transition-colors" />
+                </div>
+                <h3 className="font-display text-lg font-semibold text-foreground mb-2">
+                  {role.label}
+                </h3>
+                <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                  {role.description}
+                </p>
+                <span className="text-sm font-medium text-neon flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  Registrera dig <ArrowRight className="h-4 w-4" />
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
       <section className="py-24 lg:py-32 bg-gradient-hero relative overflow-hidden">
         {/* Background effects */}
         <div className="absolute inset-0">
