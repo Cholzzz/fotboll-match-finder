@@ -19,6 +19,7 @@ import ClubDashboard from "./pages/ClubDashboard";
 import PerformanceTests from "./pages/PerformanceTests";
 import NutritionPlan from "./pages/NutritionPlan";
 import MyProfile from "./pages/MyProfile";
+import MyStaffProfile from "./pages/MyStaffProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/performance" element={<PerformanceTests />} />
             <Route path="/nutrition" element={<NutritionPlan />} />
             <Route path="/my-profile" element={<MyProfile />} />
+            <Route path="/my-staff-profile" element={<MyStaffProfile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

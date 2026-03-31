@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Video, Users, Calendar, Activity, Apple, ChevronDown, UserCheck } from "lucide-react";
+import { Menu, X, Video, Users, Calendar, Activity, Apple, ChevronDown, UserCheck, User, LogOut, MessageSquare } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,10 +9,15 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, loading } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -29,6 +34,12 @@ const Header = () => {
   ];
 
   const allNavLinks = [...mainNavLinks, ...toolsNavLinks];
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast({ title: "Utloggad", description: "Du har loggats ut." });
+    navigate("/");
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-md border-b border-border">
@@ -90,16 +101,48 @@ const Header = () => {
 
         {/* Desktop Actions */}
         <div className="hidden lg:flex items-center gap-2">
-          <Link to="/login">
-            <Button variant="ghost" size="sm">
-              Logga in
-            </Button>
-          </Link>
-          <Link to="/register">
-            <Button variant="neon" size="sm" className="btn-glow">
-              Kom igång
-            </Button>
-          </Link>
+          {!loading && user ? (
+            <>
+              <Link to="/messages">
+                <Button variant="ghost" size="icon" className={isActive("/messages") ? "text-neon" : ""}>
+                  <MessageSquare className="h-5 w-5" />
+                </Button>
+              </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <div className="h-8 w-8 rounded-full bg-neon flex items-center justify-center">
+                      <span className="text-sm font-bold text-background">
+                        {user.user_metadata?.full_name?.charAt(0)?.toUpperCase() || "U"}
+                      </span>
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem asChild>
+                    <Link to="/my-profile" className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Min profil
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 text-destructive">
+                    <LogOut className="h-4 w-4" />
+                    Logga ut
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : !loading ? (
+            <>
+              <Link to="/login">
+                <Button variant="ghost" size="sm">Logga in</Button>
+              </Link>
+              <Link to="/register">
+                <Button variant="neon" size="sm" className="btn-glow">Kom igång</Button>
+              </Link>
+            </>
+          ) : null}
         </div>
 
         {/* Mobile Menu Button */}
@@ -134,16 +177,27 @@ const Header = () => {
               ))}
             </nav>
             <div className="flex flex-col gap-2 pt-4 border-t border-border">
-              <Link to="/login" onClick={() => setIsMenuOpen(false)}>
-                <Button variant="outline" className="w-full">
-                  Logga in
-                </Button>
-              </Link>
-              <Link to="/register" onClick={() => setIsMenuOpen(false)}>
-                <Button variant="neon" className="w-full btn-glow">
-                  Kom igång
-                </Button>
-              </Link>
+              {user ? (
+                <>
+                  <Link to="/my-profile" onClick={() => setIsMenuOpen(false)}>
+                    <Button variant="outline" className="w-full gap-2">
+                      <User className="h-4 w-4" /> Min profil
+                    </Button>
+                  </Link>
+                  <Button variant="ghost" className="w-full gap-2 text-destructive" onClick={() => { handleLogout(); setIsMenuOpen(false); }}>
+                    <LogOut className="h-4 w-4" /> Logga ut
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login" onClick={() => setIsMenuOpen(false)}>
+                    <Button variant="outline" className="w-full">Logga in</Button>
+                  </Link>
+                  <Link to="/register" onClick={() => setIsMenuOpen(false)}>
+                    <Button variant="neon" className="w-full btn-glow">Kom igång</Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
