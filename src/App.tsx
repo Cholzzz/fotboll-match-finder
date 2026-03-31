@@ -21,6 +21,7 @@ import NutritionPlan from "./pages/NutritionPlan";
 import MyProfile from "./pages/MyProfile";
 import MyStaffProfile from "./pages/MyStaffProfile";
 import Connections from "./pages/Connections";
+import Rankings from "./pages/Rankings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
