@@ -1,3 +1,4 @@
+import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Layout from "@/components/layout/Layout";
@@ -7,13 +8,26 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   MapPin, Calendar, Footprints, FileText, Play, MessageCircle,
-  TrendingUp, Activity, ArrowLeft, Users
+  ArrowLeft, Users
 } from "lucide-react";
 import ConnectButton from "@/components/ConnectButton";
 import { useConnectionCount } from "@/hooks/useConnections";
+import { useAuth } from "@/contexts/AuthContext";
 
 const PlayerProfile = () => {
   const { id } = useParams();
+  const { user } = useAuth();
+
+  // Log profile view
+  const viewLogged = React.useRef(false);
+  React.useEffect(() => {
+    if (!id || viewLogged.current) return;
+    viewLogged.current = true;
+    (supabase as any).from("profile_views").insert({
+      player_user_id: id,
+      viewer_user_id: user?.id ?? null,
+    });
+  }, [id, user]);
 
   const { data: player, isLoading, error } = useQuery({
     queryKey: ["player-profile", id],

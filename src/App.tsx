@@ -21,6 +21,7 @@ import NutritionPlan from "./pages/NutritionPlan";
 import MyProfile from "./pages/MyProfile";
 import MyStaffProfile from "./pages/MyStaffProfile";
 import Connections from "./pages/Connections";
+import Rankings from "./pages/Rankings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/my-profile" element={<MyProfile />} />
             <Route path="/my-staff-profile" element={<MyStaffProfile />} />
             <Route path="/connections" element={<Connections />} />
+            <Route path="/rankings" element={<Rankings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

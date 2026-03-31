@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Video, Users, Calendar, Activity, Apple, ChevronDown, UserCheck, User, LogOut, MessageSquare, Link2 } from "lucide-react";
+import { Menu, X, Video, Users, Calendar, Activity, Apple, ChevronDown, UserCheck, User, LogOut, MessageSquare, Link2, Trophy } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +27,7 @@ const Header = () => {
     { path: "/dashboard", label: "Sök spelare", icon: Users },
     { path: "/search-staff", label: "Sök personal", icon: UserCheck },
     { path: "/trials", label: "Provträningar", icon: Calendar },
+    { path: "/rankings", label: "Topplista", icon: Trophy },
   ];
 
   const toolsNavLinks = [
