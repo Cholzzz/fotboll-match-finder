@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Video, Users, Calendar, Activity, Apple, ChevronDown, UserCheck, User, LogOut, MessageSquare } from "lucide-react";
+import { Menu, X, Video, Users, Calendar, Activity, Apple, ChevronDown, UserCheck, User, LogOut, MessageSquare, Link2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -125,6 +125,12 @@ const Header = () => {
                       Min profil
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/connections" className="flex items-center gap-2">
+                      <Link2 className="h-4 w-4" />
+                      Mitt nätverk
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 text-destructive">
                     <LogOut className="h-4 w-4" />
@@ -182,6 +188,11 @@ const Header = () => {
                   <Link to="/my-profile" onClick={() => setIsMenuOpen(false)}>
                     <Button variant="outline" className="w-full gap-2">
                       <User className="h-4 w-4" /> Min profil
+                    </Button>
+                  </Link>
+                  <Link to="/connections" onClick={() => setIsMenuOpen(false)}>
+                    <Button variant="outline" className="w-full gap-2">
+                      <Link2 className="h-4 w-4" /> Mitt nätverk
                     </Button>
                   </Link>
                   <Button variant="ghost" className="w-full gap-2 text-destructive" onClick={() => { handleLogout(); setIsMenuOpen(false); }}>

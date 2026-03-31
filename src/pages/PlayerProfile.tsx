@@ -7,8 +7,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   MapPin, Calendar, Footprints, FileText, Play, MessageCircle,
-  TrendingUp, Activity, ArrowLeft
+  TrendingUp, Activity, ArrowLeft, Users
 } from "lucide-react";
+import ConnectButton from "@/components/ConnectButton";
+import { useConnectionCount } from "@/hooks/useConnections";
 
 const PlayerProfile = () => {
   const { id } = useParams();
@@ -83,6 +85,7 @@ const PlayerProfile = () => {
     );
   }
 
+  const { data: connectionCount = 0 } = useConnectionCount(id);
   const initials = player.name.split(" ").map((n: string) => n[0]).join("");
 
   return (
@@ -127,8 +130,11 @@ const PlayerProfile = () => {
                 </div>
               </div>
 
-              <div className="flex gap-3 lg:ml-auto">
-                <Button variant="outline" size="lg">Spara</Button>
+              <div className="flex flex-wrap items-center gap-3 lg:ml-auto">
+                <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <Users className="h-4 w-4" /> {connectionCount} kontakter
+                </span>
+                <ConnectButton targetUserId={id!} size="lg" />
                 <Link to={`/messages?to=${id}`}>
                   <Button variant="neon" size="lg">
                     <MessageCircle className="mr-2 h-4 w-4" /> Kontakta spelare
