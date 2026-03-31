@@ -17,7 +17,7 @@ const Rankings = () => {
   const { data: rankings, isLoading } = useQuery({
     queryKey: ["player-rankings"],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_player_rankings", {
+      const { data, error } = await (supabase as any).rpc("get_player_rankings", {
         limit_count: 50,
       });
       if (error) throw error;
