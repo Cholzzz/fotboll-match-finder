@@ -3,7 +3,7 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Building2, Mail, Lock, ArrowRight, ArrowLeft, Stethoscope, BarChart3, Search, Users, Apple, Brain } from "lucide-react";
+import { User, Building2, Mail, Lock, ArrowRight, ArrowLeft, Stethoscope, BarChart3, Search, Users, Apple, Brain, Briefcase } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -48,7 +48,8 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
-  const mainRoles = roleOptions.filter(r => r.category === "main");
+  const [showStaffPicker, setShowStaffPicker] = useState(false);
+  const staffRoles = roleOptions.filter(r => r.category === "staff");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,30 +115,90 @@ const Register = () => {
 
           {!selectedRole ? (
             <div className="space-y-4">
-              {/* Main roles */}
-              <div className="space-y-3">
-                {mainRoles.map((role) => {
-                  const IconComponent = role.icon;
-                  return (
-                    <button
-                      key={role.id}
-                      onClick={() => setSelectedRole(role.id)}
-                      className="w-full p-5 rounded-2xl border-2 border-border bg-card hover:border-foreground/30 transition-all text-left group"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-foreground flex items-center justify-center">
-                          <IconComponent className="h-6 w-6 text-background" />
-                        </div>
-                        <div>
-                          <h3 className="font-display font-semibold text-foreground">Jag är {role.label.toLowerCase()}</h3>
-                          <p className="text-sm text-muted-foreground">{role.description}</p>
-                        </div>
+              {!showStaffPicker ? (
+                <div className="space-y-3">
+                  {/* Player */}
+                  <button
+                    onClick={() => setSelectedRole("player")}
+                    className="w-full p-5 rounded-2xl border-2 border-border bg-card hover:border-foreground/30 transition-all text-left group"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-foreground flex items-center justify-center">
+                        <User className="h-6 w-6 text-background" />
                       </div>
-                    </button>
-                  );
-                })}
-              </div>
+                      <div>
+                        <h3 className="font-display font-semibold text-foreground">Jag är spelare</h3>
+                        <p className="text-sm text-muted-foreground">Skapa en profil och bli upptäckt</p>
+                      </div>
+                    </div>
+                  </button>
 
+                  {/* Club */}
+                  <button
+                    onClick={() => setSelectedRole("club")}
+                    className="w-full p-5 rounded-2xl border-2 border-border bg-card hover:border-foreground/30 transition-all text-left group"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-foreground flex items-center justify-center">
+                        <Building2 className="h-6 w-6 text-background" />
+                      </div>
+                      <div>
+                        <h3 className="font-display font-semibold text-foreground">Jag representerar en klubb</h3>
+                        <p className="text-sm text-muted-foreground">Sök och rekrytera spelare</p>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Professional staff */}
+                  <button
+                    onClick={() => setShowStaffPicker(true)}
+                    className="w-full p-5 rounded-2xl border-2 border-border bg-card hover:border-foreground/30 transition-all text-left group"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-foreground flex items-center justify-center">
+                        <Briefcase className="h-6 w-6 text-background" />
+                      </div>
+                      <div>
+                        <h3 className="font-display font-semibold text-foreground">Jag är professionell personal</h3>
+                        <p className="text-sm text-muted-foreground">Tränare, fysioterapeut, analytiker m.m.</p>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <button
+                    onClick={() => setShowStaffPicker(false)}
+                    className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Tillbaka
+                  </button>
+                  <h2 className="font-display text-lg font-semibold text-foreground">Välj din roll</h2>
+                  <div className="grid grid-cols-2 gap-3">
+                    {staffRoles.map((role) => {
+                      const IconComponent = role.icon;
+                      return (
+                        <button
+                          key={role.id}
+                          onClick={() => setSelectedRole(role.id)}
+                          className="p-4 rounded-xl border-2 border-border bg-card hover:border-neon/50 hover:bg-neon/5 transition-all text-left"
+                        >
+                          <div className="flex flex-col gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-neon/10 flex items-center justify-center">
+                              <IconComponent className="h-5 w-5 text-neon" />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-foreground text-sm">{role.label}</h3>
+                              <p className="text-xs text-muted-foreground mt-0.5">{role.description}</p>
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
