@@ -1,31 +1,37 @@
 
 
-## Plan: Add All Registration Roles to the Landing Page
+## Plan: Koppla sökspelare-sidan till databasen
 
-Currently the hero section only shows two CTA buttons: "Jag ar spelare" and "Jag representerar en klubb". The professional roles (coach, physiotherapist, analyst, scout, nutritionist, mental coach) are hidden on the registration page behind a toggle.
+Ersätter den hårdkodade listan med riktiga spelarprofiler från `player_profiles` + `profiles`-tabellerna.
 
-### Changes
+### Hur det fungerar
 
-**File: `src/pages/Index.tsx`**
+Data hämtas genom att joina `player_profiles` (position, age, region) med `profiles` (full_name, avatar_url) via `user_id`. Filtreringen (namn, position, region, ålder) sker klientside som idag men på riktig data.
 
-1. Add a new section after the "For Clubs" section (or replace the final CTA section's content) with a "For Professionals" block that shows all staff roles as clickable cards linking to `/register?role=<role>`.
+### Ändringar
 
-2. Each card will display the role's icon, Swedish label, and short description — matching the style already used in `Register.tsx`. Cards link directly to `/register?role=coach`, `/register?role=physiotherapist`, etc.
+**`src/pages/SearchPlayers.tsx`**
+- Ta bort `mockPlayers`-arrayen
+- Lägg till `useQuery` (react-query) som hämtar spelare från Supabase:
+  - Query: `supabase.from('player_profiles').select('*, profiles!inner(full_name, avatar_url, user_id)')` 
+- Mappa resultatet till samma format som PlayerCard förväntar sig (`id` = `user_id`, `name` = `profiles.full_name`, etc.)
+- Lägg till loading-state (skeleton/spinner) och error-state
+- Filtreringen fortsätter klientside på det hämtade resultatet
 
-3. Add the missing icon imports (`Stethoscope`, `Search`, `Apple`, `Brain`).
+**`src/components/PlayerCard.tsx`**
+- Inga ändringar behövs -- interfacet matchar redan
 
-4. Style: Use the existing `card-premium` or `card-dark` styling with the neon accent hover effects already in the design system. Grid layout: 2 columns on mobile, 3 on tablet, 4 on desktop.
-
-### Section Structure
+### Dataflöde
 
 ```text
-[Badge: "For professionals"]
-[Headline: "Professionell personal" or similar]
-[Subtitle: short text about joining as staff]
-
-[Coach]  [Physio]  [Analyst]  [Scout]
-[Nutritionist]  [Mental Coach]
+player_profiles (position, age, region, user_id)
+       ↓ join via user_id
+profiles (full_name, avatar_url)
+       ↓ map
+PlayerCard props (id, name, position, age, region, imageUrl)
 ```
 
-Each card links to `/register?role=<id>` so the registration form pre-selects the correct role.
+### Förutsättningar
+
+Tabellerna `player_profiles` och `profiles` har redan SELECT-policies för authenticated users, så inga RLS-ändringar behövs. Inga migrationer krävs.
 
