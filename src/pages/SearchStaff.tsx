@@ -1,132 +1,22 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Layout from "@/components/layout/Layout";
 import StaffCard, { StaffRole, StaffCardProps } from "@/components/StaffCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, SlidersHorizontal, X, Users } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
-const mockStaff: StaffCardProps[] = [
-  { 
-    id: "s1", 
-    name: "Anders Johansson", 
-    role: "coach", 
-    specialization: "Ungdomsutveckling",
-    experience: 15,
-    region: "Stockholm",
-    certifications: ["UEFA A-licens", "SvFF Elitlicens"],
-    pricing: {
-      sessionPrice: 1200,
-      sessionDuration: 60,
-      packagePrice: 5000,
-      packageSessions: 5
-    }
-  },
-  { 
-    id: "s2", 
-    name: "Maria Lindberg", 
-    role: "physio", 
-    specialization: "Idrottsskador & Rehabilitering",
-    experience: 10,
-    region: "Göteborg",
-    certifications: ["Leg. Fysioterapeut", "Sportmedicin"],
-    pricing: {
-      sessionPrice: 900,
-      sessionDuration: 45,
-      packagePrice: 4000,
-      packageSessions: 5
-    }
-  },
-  { 
-    id: "s3", 
-    name: "Erik Sundqvist", 
-    role: "analyst", 
-    specialization: "Videoanalys & Taktik",
-    experience: 7,
-    region: "Malmö",
-    certifications: ["UEFA B-licens", "Data Analytics"],
-    pricing: {
-      sessionPrice: 800,
-      sessionDuration: 60,
-      packagePrice: 3500,
-      packageSessions: 5
-    }
-  },
-  { 
-    id: "s4", 
-    name: "Sofia Bergström", 
-    role: "scout", 
-    specialization: "Skandinavisk talangspaning",
-    experience: 12,
-    region: "Stockholm",
-    certifications: ["SvFF Scoututbildning"],
-    pricing: {
-      sessionPrice: 1500,
-      sessionDuration: 90,
-    }
-  },
-  { 
-    id: "s5", 
-    name: "Johan Ekström", 
-    role: "coach", 
-    specialization: "Fysisk träning & Kondition",
-    experience: 8,
-    region: "Uppsala",
-    certifications: ["UEFA B-licens", "Strength & Conditioning"],
-    pricing: {
-      sessionPrice: 950,
-      sessionDuration: 60,
-      packagePrice: 4200,
-      packageSessions: 5
-    }
-  },
-  { 
-    id: "s6", 
-    name: "Emma Karlsson", 
-    role: "nutritionist", 
-    specialization: "Idrottsnutrition",
-    experience: 6,
-    region: "Stockholm",
-    certifications: ["Leg. Dietist", "Sports Nutrition Cert."],
-    pricing: {
-      sessionPrice: 750,
-      sessionDuration: 45,
-      packagePrice: 3200,
-      packageSessions: 5
-    }
-  },
-  { 
-    id: "s7", 
-    name: "Peter Holmgren", 
-    role: "physio", 
-    specialization: "Prestationsoptimering",
-    experience: 14,
-    region: "Göteborg",
-    certifications: ["Leg. Fysioterapeut", "Manual Terapi"],
-    pricing: {
-      sessionPrice: 1100,
-      sessionDuration: 60,
-      packagePrice: 4800,
-      packageSessions: 5
-    }
-  },
-  { 
-    id: "s8", 
-    name: "Anna Nilsson", 
-    role: "analyst", 
-    specialization: "Motståndaranalys",
-    experience: 5,
-    region: "Malmö",
-    certifications: ["SvFF Analytikerutbildning"],
-    pricing: {
-      sessionPrice: 700,
-      sessionDuration: 60,
-      packagePrice: 3000,
-      packageSessions: 5
-    }
-  },
-];
+const roleMap: Record<string, StaffRole> = {
+  coach: "coach",
+  physiotherapist: "physio",
+  analyst: "analyst",
+  scout: "scout",
+  nutritionist: "nutritionist",
+};
 
 const roleOptions: { value: StaffRole | "all"; label: string }[] = [
   { value: "all", label: "Alla roller" },
@@ -138,14 +28,7 @@ const roleOptions: { value: StaffRole | "all"; label: string }[] = [
 ];
 
 const regions = [
-  "Alla regioner",
-  "Stockholm",
-  "Göteborg",
-  "Malmö",
-  "Uppsala",
-  "Västerås",
-  "Örebro",
-  "Linköping",
+  "Alla regioner", "Stockholm", "Göteborg", "Malmö", "Uppsala", "Västerås", "Örebro", "Linköping",
 ];
 
 const experienceLevels = [
@@ -162,20 +45,59 @@ const SearchStaff = () => {
   const [region, setRegion] = useState("Alla regioner");
   const [experienceFilter, setExperienceFilter] = useState("all");
 
-  const filteredStaff = mockStaff.filter((staff) => {
+  const { data: staffList = [], isLoading } = useQuery({
+    queryKey: ["staff-list"],
+    queryFn: async () => {
+      // Get staff profiles with their profile info and roles
+      const { data: staffProfiles, error } = await supabase
+        .from("staff_profiles")
+        .select("*, profiles!inner(full_name, avatar_url, location, user_id)");
+
+      if (error) throw error;
+
+      // Get roles for these users
+      const userIds = (staffProfiles || []).map((s: any) => s.user_id);
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("user_id, role")
+        .in("user_id", userIds);
+
+      const roleByUser: Record<string, string> = {};
+      (roles || []).forEach((r: any) => { roleByUser[r.user_id] = r.role; });
+
+      return (staffProfiles || []).map((s: any): StaffCardProps => {
+        const dbRole = roleByUser[s.user_id] || "coach";
+        const mappedRole = roleMap[dbRole] || "coach";
+        return {
+          id: s.user_id,
+          name: s.profiles.full_name,
+          role: mappedRole,
+          specialization: s.specialization || "Ej angiven",
+          experience: s.experience_years || 0,
+          region: s.profiles.location || "Ej angiven",
+          certifications: Array.isArray(s.certifications) ? s.certifications as string[] : [],
+          imageUrl: s.profiles.avatar_url || undefined,
+          pricing: s.session_price ? {
+            sessionPrice: s.session_price,
+            sessionDuration: s.session_duration || 60,
+            packagePrice: s.package_price || undefined,
+            packageSessions: s.package_sessions || undefined,
+          } : undefined,
+        };
+      });
+    },
+  });
+
+  const filteredStaff = staffList.filter((staff) => {
     const matchesSearch = staff.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       staff.specialization.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = roleFilter === "all" || staff.role === roleFilter;
     const matchesRegion = region === "Alla regioner" || staff.region === region;
     
     let matchesExperience = true;
-    if (experienceFilter === "0-5") {
-      matchesExperience = staff.experience <= 5;
-    } else if (experienceFilter === "5-10") {
-      matchesExperience = staff.experience > 5 && staff.experience <= 10;
-    } else if (experienceFilter === "10+") {
-      matchesExperience = staff.experience > 10;
-    }
+    if (experienceFilter === "0-5") matchesExperience = staff.experience <= 5;
+    else if (experienceFilter === "5-10") matchesExperience = staff.experience > 5 && staff.experience <= 10;
+    else if (experienceFilter === "10+") matchesExperience = staff.experience > 10;
     
     return matchesSearch && matchesRole && matchesRegion && matchesExperience;
   });
@@ -187,11 +109,7 @@ const SearchStaff = () => {
     setExperienceFilter("all");
   };
 
-  const hasActiveFilters =
-    searchQuery ||
-    roleFilter !== "all" ||
-    region !== "Alla regioner" ||
-    experienceFilter !== "all";
+  const hasActiveFilters = searchQuery || roleFilter !== "all" || region !== "Alla regioner" || experienceFilter !== "all";
 
   return (
     <Layout>
@@ -214,65 +132,39 @@ const SearchStaff = () => {
             <div className="rounded-2xl border border-border bg-card p-5 sticky top-24">
               <div className="flex items-center justify-between mb-5">
                 <h2 className="font-display font-semibold text-foreground flex items-center gap-2">
-                  <SlidersHorizontal className="h-4 w-4" />
-                  Filter
+                  <SlidersHorizontal className="h-4 w-4" /> Filter
                 </h2>
                 {hasActiveFilters && (
-                  <button
-                    onClick={clearFilters}
-                    className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
-                  >
-                    <X className="h-3 w-3" />
-                    Rensa
+                  <button onClick={clearFilters} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+                    <X className="h-3 w-3" /> Rensa
                   </button>
                 )}
               </div>
-
               <div className="space-y-5">
                 <div className="space-y-2">
                   <Label className="text-sm">Roll</Label>
                   <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as StaffRole | "all")}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {roleOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
+                      {roleOptions.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div className="space-y-2">
                   <Label className="text-sm">Erfarenhet</Label>
                   <Select value={experienceFilter} onValueChange={setExperienceFilter}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {experienceLevels.map((level) => (
-                        <SelectItem key={level.value} value={level.value}>
-                          {level.label}
-                        </SelectItem>
-                      ))}
+                      {experienceLevels.map((l) => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div className="space-y-2">
                   <Label className="text-sm">Region</Label>
                   <Select value={region} onValueChange={setRegion}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {regions.map((reg) => (
-                        <SelectItem key={reg} value={reg}>
-                          {reg}
-                        </SelectItem>
-                      ))}
+                      {regions.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -282,25 +174,13 @@ const SearchStaff = () => {
 
           {/* Main Content */}
           <div className="flex-1">
-            {/* Search Bar */}
             <div className="flex gap-3 mb-6">
               <div className="relative flex-1">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Sök på namn eller specialisering..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
+                <Input type="text" placeholder="Sök på namn eller specialisering..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
               </div>
-              <Button
-                variant="outline"
-                className="lg:hidden"
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <SlidersHorizontal className="h-4 w-4 mr-2" />
-                Filter
+              <Button variant="outline" className="lg:hidden" onClick={() => setShowFilters(!showFilters)}>
+                <SlidersHorizontal className="h-4 w-4 mr-2" /> Filter
               </Button>
             </div>
 
@@ -309,68 +189,54 @@ const SearchStaff = () => {
               <div className="lg:hidden rounded-2xl border border-border bg-card p-5 mb-6 animate-fade-in">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="font-display font-semibold text-foreground">Filter</h2>
-                  <button onClick={() => setShowFilters(false)}>
-                    <X className="h-5 w-5 text-muted-foreground" />
-                  </button>
+                  <button onClick={() => setShowFilters(false)}><X className="h-5 w-5 text-muted-foreground" /></button>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-sm">Roll</Label>
                     <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as StaffRole | "all")}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {roleOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
+                        {roleOptions.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm">Region</Label>
                     <Select value={region} onValueChange={setRegion}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {regions.map((reg) => (
-                          <SelectItem key={reg} value={reg}>
-                            {reg}
-                          </SelectItem>
-                        ))}
+                        {regions.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
                 {hasActiveFilters && (
-                  <Button variant="ghost" size="sm" onClick={clearFilters} className="mt-4 w-full">
-                    Rensa filter
-                  </Button>
+                  <Button variant="ghost" size="sm" onClick={clearFilters} className="mt-4 w-full">Rensa filter</Button>
                 )}
               </div>
             )}
 
-            {/* Results Count */}
             <p className="text-sm text-muted-foreground mb-4">
-              {filteredStaff.length} personal hittades
+              {isLoading ? "Laddar..." : `${filteredStaff.length} personal hittades`}
             </p>
 
-            {/* Staff Grid */}
-            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
-              {filteredStaff.map((staff) => (
-                <StaffCard key={staff.id} {...staff} />
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-64 rounded-2xl" />)}
+              </div>
+            ) : (
+              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                {filteredStaff.map((staff) => (
+                  <StaffCard key={staff.id} {...staff} />
+                ))}
+              </div>
+            )}
 
-            {filteredStaff.length === 0 && (
+            {!isLoading && filteredStaff.length === 0 && (
               <div className="text-center py-16">
                 <p className="text-muted-foreground">Ingen personal matchade din sökning</p>
-                <Button variant="ghost" onClick={clearFilters} className="mt-4">
-                  Rensa filter
-                </Button>
+                <Button variant="ghost" onClick={clearFilters} className="mt-4">Rensa filter</Button>
               </div>
             )}
           </div>
