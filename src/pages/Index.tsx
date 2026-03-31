@@ -127,7 +127,7 @@ const Index = () => {
                   Jag representerar en klubb
                 </Button>
               </Link>
-              <Link to="/register">
+              <Link to="/register?category=staff">
                 <Button variant="heroOutline" size="xl" className="w-full sm:w-auto group">
                   <Stethoscope className="mr-2 h-5 w-5" />
                   Jag är professionell personal
