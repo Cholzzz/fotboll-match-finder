@@ -68,6 +68,8 @@ const PlayerProfile = () => {
     enabled: !!id,
   });
 
+  const { data: connectionCount = 0 } = useConnectionCount(id);
+
   if (isLoading) {
     return (
       <Layout>
@@ -99,7 +101,6 @@ const PlayerProfile = () => {
     );
   }
 
-  const { data: connectionCount = 0 } = useConnectionCount(id);
   const initials = player.name.split(" ").map((n: string) => n[0]).join("");
 
   return (
