@@ -49,6 +49,7 @@ const App = () => (
             <Route path="/nutrition" element={<NutritionPlan />} />
             <Route path="/my-profile" element={<MyProfile />} />
             <Route path="/my-staff-profile" element={<MyStaffProfile />} />
+            <Route path="/connections" element={<Connections />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
