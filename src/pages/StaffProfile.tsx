@@ -187,9 +187,12 @@ const StaffProfile = () => {
                     </span>
                   </div>
                   {staff.specialization && <p className="text-lg text-muted-foreground mb-4">{staff.specialization}</p>}
-                  <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
+                  <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-2">
                     {staff.experience_years != null && <span className="flex items-center gap-1.5"><Briefcase className="h-4 w-4" />{staff.experience_years} års erfarenhet</span>}
                     {profileData.location && <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4" />{profileData.location}</span>}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3 mb-4">
+                    <ConnectButton targetUserId={id!} size="sm" />
                   </div>
                   {certifications.length > 0 && (
                     <div className="flex flex-wrap gap-2">

@@ -125,6 +125,12 @@ const Header = () => {
                       Min profil
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/connections" className="flex items-center gap-2">
+                      <Link2 className="h-4 w-4" />
+                      Mitt nätverk
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 text-destructive">
                     <LogOut className="h-4 w-4" />
