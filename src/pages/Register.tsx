@@ -43,12 +43,13 @@ const Register = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const initialRole = searchParams.get("role") as Role;
+  const initialCategory = searchParams.get("category");
   const [selectedRole, setSelectedRole] = useState<Role>(initialRole);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showStaffPicker, setShowStaffPicker] = useState(false);
+  const [showStaffPicker, setShowStaffPicker] = useState(initialCategory === "staff");
   const staffRoles = roleOptions.filter(r => r.category === "staff");
 
   const handleSubmit = async (e: React.FormEvent) => {
