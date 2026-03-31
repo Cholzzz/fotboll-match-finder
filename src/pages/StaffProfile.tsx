@@ -11,6 +11,8 @@ import {
   FileText, CreditCard, Clock, Check, CalendarDays, Loader2
 } from "lucide-react";
 import BookingCalendar from "@/components/BookingCalendar";
+import ConnectButton from "@/components/ConnectButton";
+import { useConnectionCount } from "@/hooks/useConnections";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
