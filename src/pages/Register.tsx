@@ -48,10 +48,7 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showStaffRoles, setShowStaffRoles] = useState(false);
-
   const mainRoles = roleOptions.filter(r => r.category === "main");
-  const staffRoles = roleOptions.filter(r => r.category === "staff");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
