@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   MapPin, Calendar, Footprints, FileText, Play, MessageCircle,
-  TrendingUp, Activity, ArrowLeft, Users
+  ArrowLeft, Users
 } from "lucide-react";
 import ConnectButton from "@/components/ConnectButton";
 import { useConnectionCount } from "@/hooks/useConnections";

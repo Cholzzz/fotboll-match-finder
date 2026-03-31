@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import Layout from "@/components/layout/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
-import { Trophy, Eye, MapPin, User } from "lucide-react";
+import { Trophy, Eye, MapPin } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
