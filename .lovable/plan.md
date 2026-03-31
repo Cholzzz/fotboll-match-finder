@@ -1,57 +1,47 @@
 
 
-## SportsIN — Roadmap mot "LinkedIn för fotboll"
+## Plan: Rankingsystem — Topplista mest visade spelare
 
-Plattformen har grunderna: registrering, profiler, sökning, highlights och bokning. Men för att bli ett riktigt ekosystem saknas flera kritiska delar. Här är en prioriterad lista:
+### Översikt
+Skapa en `profile_views`-tabell som loggar varje profilbesök, sedan en ny `/rankings`-sida som visar en topplista sorterad på antal visningar.
 
----
+### 1. Databasmigrering
+Ny tabell `profile_views`:
+```sql
+CREATE TABLE public.profile_views (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  player_user_id uuid NOT NULL,
+  viewer_user_id uuid,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.profile_views ENABLE ROW LEVEL SECURITY;
 
-### 1. Meddelandesystem (databaskopplat)
-Messages-sidan är helt hårdkodad. Behöver en `messages`/`conversations`-tabell i databasen med realtime-stöd så att spelare, klubbar och personal faktiskt kan kommunicera.
+-- Alla inloggade kan logga visningar
+CREATE POLICY "Anyone can insert views" ON public.profile_views
+  FOR INSERT TO authenticated WITH CHECK (true);
 
-### 2. Spelarprofil från databas
-`/player/:id` visar fortfarande mock-data. Ska hämta från `player_profiles` + `profiles` + `highlights` via Supabase, precis som söksidan nu gör.
+-- Alla inloggade kan läsa (för topplistan)
+CREATE POLICY "Anyone can read views" ON public.profile_views
+  FOR SELECT TO authenticated USING (true);
+```
 
-### 3. Nätverksfunktion (connections/följare)
-Kärnan i ett LinkedIn-liknande system. En `connections`-tabell där användare kan skicka kontaktförfrågningar, följa varandra och bygga nätverk. Visar "X kontakter" på profilen.
+### 2. Logga visningar (`src/pages/PlayerProfile.tsx`)
+Lägg till en `useEffect` som insertar en rad i `profile_views` varje gång en spelarprofil laddas (en gång per session/besök). Förhindrar dubbelräkning genom att bara logga en gång per komponent-mount.
 
-### 4. Aktivitetsflöde / Nyhetsflöde
-En feed på startsidan (för inloggade) som visar: nya highlights uppladdade, profiländringar, provträningar publicerade, nya kontakter. Tabell `activity_feed` eller genereras från andra tabellers ändringar.
+### 3. Ny sida: `src/pages/Rankings.tsx`
+- Hämtar visningar med en aggregerad query: räkna antal rader per `player_user_id`, joina med `profiles` och `player_profiles` för namn/position/region/avatar
+- Visar en tabell med kolumner: Rank, Spelare (avatar + namn), Position, Region, Antal visningar
+- Responsiv design med befintliga UI-komponenter (Table, Skeleton)
+- Topp 50 spelare visas
 
-### 5. Provträningar (databaskopplade)
-`/trials` är hårdkodad. Klubbar ska kunna skapa provträningar, spelare anmäla sig. Tabeller: `trials` + `trial_applications`.
+### 4. Routing (`src/App.tsx`)
+Lägg till `/rankings`-route som pekar på Rankings-sidan.
 
-### 6. Rekommendationer & Endorsements
-Personal och klubbar ska kunna skriva rekommendationer om spelare (som LinkedIn-endorsements). Tabell `recommendations` med synlighet på spelarprofilen.
+### 5. Navigation (`src/components/layout/Header.tsx`)
+Lägg till en "Topplista"-länk i navigationen.
 
-### 7. Notifikationer
-Realtime-notiser för nya meddelanden, kontaktförfrågningar, bokningsbekräftelser, provträningsinbjudningar. Tabell `notifications` + bell-ikon i headern.
-
-### 8. Statistik & Prestationsdata från databas
-Säsongsstatistik och fysiska tester på spelarprofilen är hårdkodade. Tabeller `season_stats` + `physical_tests` med verifieringsnivåer.
-
-### 9. Sök personal från databas
-`/search-staff` använder troligen mock-data. Koppla till `staff_profiles` + `profiles` precis som spelarsökningen.
-
-### 10. Profilsynlighet & Integritetsinställningar
-Spelare ska kunna välja vad som är publikt vs. privat (t.ex. visa statistik bara för klubbar som de har kontakt med).
-
----
-
-### Rekommenderad ordning
-
-| Prio | Funktion | Varför |
-|------|----------|--------|
-| 1 | Spelarprofil från DB | Grundläggande — profiler måste visa riktig data |
-| 2 | Meddelandesystem | Kärnan i kommunikation |
-| 3 | Connections/nätverk | Det som gör det till "LinkedIn" |
-| 4 | Provträningar från DB | Koppling spelare ↔ klubbar |
-| 5 | Aktivitetsflöde | Engagemang och återbesök |
-| 6 | Notifikationer | Håller användare aktiva |
-| 7 | Rekommendationer | Social proof |
-| 8 | Statistik från DB | Datadriven differentiering |
-| 9 | Sök personal från DB | Komplett ekosystem |
-| 10 | Integritetsinställningar | Mognadsfunktion |
-
-Vilken/vilka vill du börja med?
+### Tekniska detaljer
+- Query: `supabase.from('profile_views').select('player_user_id').then()` → gruppera klientsidigt, eller använda en RPC-funktion för aggregering
+- Alternativt: skapa en DB-funktion `get_player_rankings()` som returnerar aggregerad data direkt — snabbare och renare
+- Rankingsidan använder `useQuery` med React Query för caching
 
