@@ -46,10 +46,13 @@ const MyProfile = () => {
       // Get profile name
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name")
+        .select("full_name, avatar_url")
         .eq("user_id", user.id)
         .maybeSingle();
-      if (profile) setProfileName(profile.full_name);
+      if (profile) {
+        setProfileName(profile.full_name);
+        setAvatarUrl(profile.avatar_url);
+      }
 
       // Get player profile
       const { data } = await supabase
