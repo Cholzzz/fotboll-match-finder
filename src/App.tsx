@@ -7,6 +7,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import PlayerProfile from "./pages/PlayerProfile";
 import ClubProfile from "./pages/ClubProfile";
 import SearchPlayers from "./pages/SearchPlayers";
@@ -37,6 +39,8 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/player/:id" element={<PlayerProfile />} />
             <Route path="/club/:id" element={<ClubProfile />} />
             <Route path="/search" element={<SearchPlayers />} />

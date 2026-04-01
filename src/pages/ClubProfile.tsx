@@ -1,25 +1,80 @@
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { MapPin, Users, Trophy, Mail, Phone, Calendar } from "lucide-react";
-
-const mockClub = {
-  id: "1",
-  name: "Djurgårdens IF",
-  division: "Allsvenskan",
-  region: "Stockholm",
-  description: "Djurgårdens IF är en av Sveriges mest framgångsrika fotbollsklubbar med en stolt historia och en stark ungdomsakademi. Vi söker ständigt efter talangfulla spelare som vill ta nästa steg i sin karriär.",
-  contactPerson: {
-    name: "Anna Svensson",
-    role: "Sportchef",
-    email: "anna.svensson@dif.se",
-    phone: "070-123 45 67",
-  },
-  activeTrials: 2,
-};
+import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { MapPin, Users, Trophy, Calendar, ArrowLeft } from "lucide-react";
 
 const ClubProfile = () => {
   const { id } = useParams();
+  const { user } = useAuth();
+
+  const { data: club, isLoading } = useQuery({
+    queryKey: ["club-profile", id],
+    queryFn: async () => {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", id!)
+        .maybeSingle();
+
+      if (!profile) throw new Error("Klubb hittades inte");
+
+      // Count active trials
+      const { count: trialCount } = await supabase
+        .from("trials")
+        .select("*", { count: "exact", head: true })
+        .eq("club_user_id", id!);
+
+      return {
+        ...profile,
+        trialCount: trialCount || 0,
+      };
+    },
+    enabled: !!id,
+  });
+
+  // Fetch club's trials
+  const { data: trials = [] } = useQuery({
+    queryKey: ["club-trials-profile", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("trials")
+        .select("*")
+        .eq("club_user_id", id!)
+        .order("trial_date", { ascending: true });
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="container py-8 space-y-6">
+          <Skeleton className="h-48 w-full rounded-2xl" />
+          <Skeleton className="h-32 w-full rounded-2xl" />
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!club) {
+    return (
+      <Layout>
+        <div className="container py-16 text-center">
+          <h2 className="font-display text-2xl font-bold text-foreground mb-2">Klubb hittades inte</h2>
+          <Link to="/search">
+            <Button variant="outline"><ArrowLeft className="h-4 w-4 mr-2" />Tillbaka</Button>
+          </Link>
+        </div>
+      </Layout>
+    );
+  }
+
+  const initials = club.full_name?.split(" ")[0]?.substring(0, 3)?.toUpperCase() || "?";
 
   return (
     <Layout>
@@ -30,110 +85,86 @@ const ClubProfile = () => {
           
           <div className="px-6 md:px-8 pb-6 -mt-12">
             <div className="flex flex-col md:flex-row md:items-end gap-5">
-              {/* Logo */}
-              <div className="w-24 h-24 rounded-2xl bg-background border-4 border-card flex items-center justify-center flex-shrink-0">
-                <span className="font-display text-2xl font-bold text-foreground">
-                  {mockClub.name.split(" ")[0].substring(0, 3).toUpperCase()}
-                </span>
+              <div className="w-24 h-24 rounded-2xl bg-background border-4 border-card flex items-center justify-center flex-shrink-0 overflow-hidden">
+                {club.avatar_url ? (
+                  <img src={club.avatar_url} alt={club.full_name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="font-display text-2xl font-bold text-foreground">{initials}</span>
+                )}
               </div>
 
-              {/* Info */}
               <div className="flex-1">
                 <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                  {mockClub.name}
+                  {club.full_name}
                 </h1>
-                
                 <div className="flex flex-wrap gap-4 mt-3">
+                  {club.location && (
+                    <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <MapPin className="h-4 w-4" /> {club.location}
+                    </span>
+                  )}
                   <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <Trophy className="h-4 w-4" />
-                    {mockClub.division}
-                  </span>
-                  <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4" />
-                    {mockClub.region}
-                  </span>
-                  <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    {mockClub.activeTrials} aktiva provträningar
+                    <Calendar className="h-4 w-4" /> {club.trialCount} aktiva provträningar
                   </span>
                 </div>
               </div>
 
-              {/* CTA */}
-              <div className="md:ml-auto">
-                <Button variant="neon" size="lg">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  Skapa provträning
-                </Button>
+              <div className="md:ml-auto flex gap-2">
+                <Link to={`/messages?to=${id}`}>
+                  <Button variant="neon" size="lg">Kontakta klubb</Button>
+                </Link>
               </div>
             </div>
           </div>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6 mt-6">
-          {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* About */}
-            <div className="rounded-2xl border border-border bg-card p-6">
-              <h2 className="font-display text-lg font-semibold text-foreground mb-4">
-                Om klubben
-              </h2>
-              <p className="text-muted-foreground leading-relaxed">{mockClub.description}</p>
-            </div>
-
-            {/* Stats placeholder */}
-            <div className="rounded-2xl border border-border bg-card p-6">
-              <h2 className="font-display text-lg font-semibold text-foreground mb-4">
-                Klubbstatistik
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  { label: "Grundad", value: "1891" },
-                  { label: "Spelare i trupp", value: "28" },
-                  { label: "SM-guld", value: "12" },
-                  { label: "Arena", value: "Tele2 Arena" },
-                ].map((stat, index) => (
-                  <div key={index} className="text-center p-4 rounded-xl bg-muted">
-                    <p className="font-display text-2xl font-bold text-foreground">{stat.value}</p>
-                    <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
-                  </div>
-                ))}
+            {club.bio && (
+              <div className="rounded-2xl border border-border bg-card p-6">
+                <h2 className="font-display text-lg font-semibold text-foreground mb-4">Om klubben</h2>
+                <p className="text-muted-foreground leading-relaxed">{club.bio}</p>
               </div>
+            )}
+
+            {/* Trials */}
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <h2 className="font-display text-lg font-semibold text-foreground mb-4">Provträningar</h2>
+              {trials.length === 0 ? (
+                <p className="text-muted-foreground text-sm">Inga provträningar publicerade.</p>
+              ) : (
+                <div className="space-y-3">
+                  {trials.map((trial: any) => (
+                    <div key={trial.id} className="p-4 rounded-xl bg-muted">
+                      <h3 className="font-semibold text-foreground text-sm">{trial.title || "Provträning"}</h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {trial.trial_date} • {trial.start_time?.slice(0, 5)} - {trial.end_time?.slice(0, 5)} • {trial.location}
+                      </p>
+                      {Array.isArray(trial.positions) && trial.positions.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {trial.positions.map((pos: string) => (
+                            <span key={pos} className="px-2 py-0.5 rounded bg-neon/10 text-neon text-xs">{pos}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-6">
-            {/* Contact */}
             <div className="rounded-2xl border border-border bg-card p-6">
               <h3 className="font-display font-semibold text-foreground mb-4 flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Kontaktperson
+                <Users className="h-5 w-5" /> Kontakt
               </h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <p className="font-medium text-foreground">{mockClub.contactPerson.name}</p>
-                  <p className="text-sm text-muted-foreground">{mockClub.contactPerson.role}</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <a
-                    href={`mailto:${mockClub.contactPerson.email}`}
-                    className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <Mail className="h-4 w-4" />
-                    {mockClub.contactPerson.email}
-                  </a>
-                  <a
-                    href={`tel:${mockClub.contactPerson.phone}`}
-                    className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <Phone className="h-4 w-4" />
-                    {mockClub.contactPerson.phone}
-                  </a>
-                </div>
-              </div>
+              {club.phone && (
+                <p className="text-sm text-muted-foreground mb-2">📞 {club.phone}</p>
+              )}
+              <Link to={`/messages?to=${id}`}>
+                <Button variant="outline" className="w-full mt-2">Skicka meddelande</Button>
+              </Link>
             </div>
           </div>
         </div>

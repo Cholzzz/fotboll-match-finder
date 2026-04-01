@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Layout from "@/components/layout/Layout";
@@ -8,15 +8,22 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   MapPin, Calendar, Footprints, FileText, Play, MessageCircle,
-  ArrowLeft, Users
+  ArrowLeft, Users, Bookmark, BookmarkCheck, Shield
 } from "lucide-react";
 import ConnectButton from "@/components/ConnectButton";
 import { useConnectionCount } from "@/hooks/useConnections";
 import { useAuth } from "@/contexts/AuthContext";
 
+const statusLabels: Record<string, { label: string; color: string }> = {
+  free_agent: { label: "Kontraktslös", color: "bg-neon/10 text-neon border-neon/20" },
+  looking: { label: "Söker klubb", color: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
+  has_club: { label: "Har klubb", color: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
+};
+
 const PlayerProfile = () => {
   const { id } = useParams();
   const { user } = useAuth();
+  const [isSaved, setIsSaved] = useState(false);
 
   // Log profile view
   const viewLogged = React.useRef(false);
@@ -32,7 +39,6 @@ const PlayerProfile = () => {
   const { data: player, isLoading, error } = useQuery({
     queryKey: ["player-profile", id],
     queryFn: async () => {
-      // id is user_id from the URL
       const { data: playerProfile, error: ppError } = await supabase
         .from("player_profiles")
         .select("*")
@@ -63,6 +69,7 @@ const PlayerProfile = () => {
         location: profile?.location,
         profileBio: profile?.bio,
         highlights: highlights || [],
+        contractStatus: (playerProfile as any).contract_status || "free_agent",
       };
     },
     enabled: !!id,
@@ -102,6 +109,7 @@ const PlayerProfile = () => {
   }
 
   const initials = player.name.split(" ").map((n: string) => n[0]).join("");
+  const status = statusLabels[player.contractStatus] || statusLabels.free_agent;
 
   return (
     <Layout>
@@ -121,9 +129,14 @@ const PlayerProfile = () => {
               </div>
 
               <div className="flex-1">
-                <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-1">
-                  {player.name}
-                </h1>
+                <div className="flex flex-wrap items-center gap-3 mb-1">
+                  <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
+                    {player.name}
+                  </h1>
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${status.color}`}>
+                    {status.label}
+                  </span>
+                </div>
                 <p className="text-muted-foreground text-lg">{player.position || "Position ej angiven"}</p>
                 
                 <div className="flex flex-wrap gap-x-6 gap-y-2 mt-4">
@@ -149,10 +162,18 @@ const PlayerProfile = () => {
                 <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
                   <Users className="h-4 w-4" /> {connectionCount} kontakter
                 </span>
+                <button
+                  onClick={() => setIsSaved(!isSaved)}
+                  className={`p-2.5 rounded-xl border transition-colors ${
+                    isSaved ? "border-neon bg-neon/10 text-neon" : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/30"
+                  }`}
+                >
+                  {isSaved ? <BookmarkCheck className="h-5 w-5" /> : <Bookmark className="h-5 w-5" />}
+                </button>
                 <ConnectButton targetUserId={id!} size="lg" />
                 <Link to={`/messages?to=${id}`}>
                   <Button variant="neon" size="lg">
-                    <MessageCircle className="mr-2 h-4 w-4" /> Kontakta spelare
+                    <MessageCircle className="mr-2 h-4 w-4" /> Kontakta
                   </Button>
                 </Link>
               </div>
@@ -233,6 +254,10 @@ const PlayerProfile = () => {
                         <dd className="font-medium text-foreground">{player.position}</dd>
                       </div>
                     )}
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">Status</dt>
+                      <dd className="font-medium text-foreground">{status.label}</dd>
+                    </div>
                   </dl>
                 </div>
               </div>
