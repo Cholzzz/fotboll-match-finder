@@ -116,7 +116,7 @@ const PlayerProfile = () => {
       <div className="container py-8">
         {/* Profile Header */}
         <div className="rounded-2xl border border-border bg-card overflow-hidden">
-          <div className="bg-foreground p-8 pb-24" />
+          <div className="bg-background p-8 pb-24" />
           
           <div className="px-6 md:px-8 pb-6 -mt-16">
             <div className="flex flex-col lg:flex-row lg:items-end gap-6">
