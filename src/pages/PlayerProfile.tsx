@@ -124,9 +124,9 @@ const PlayerProfile = () => {
               {user?.id === id ? (
                 <AvatarUpload
                   userId={id!}
-                  currentAvatarUrl={player.avatarUrl}
-                  onUploadComplete={() => {}}
-                  size="lg"
+                  currentUrl={player.avatarUrl}
+                  onUploaded={() => {}}
+                  name={player.name}
                 />
               ) : (
                 <div className="w-28 h-28 rounded-2xl bg-neon border-4 border-card flex items-center justify-center flex-shrink-0 overflow-hidden">
