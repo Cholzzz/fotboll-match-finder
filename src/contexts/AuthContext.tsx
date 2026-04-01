@@ -54,7 +54,11 @@ async function ensureProfileAndRole(user: User) {
         .maybeSingle();
 
       if (!existingStaff) {
-        await supabase.from("staff_profiles").insert({ user_id: user.id });
+        await supabase.from("staff_profiles").insert({
+          user_id: user.id,
+          available_hours_start: meta?.available_hours_start || "09:00",
+          available_hours_end: meta?.available_hours_end || "17:00",
+        });
       }
     }
   }
