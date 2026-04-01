@@ -13,6 +13,7 @@ import {
 import ConnectButton from "@/components/ConnectButton";
 import { useConnectionCount } from "@/hooks/useConnections";
 import { useAuth } from "@/contexts/AuthContext";
+import AvatarUpload from "@/components/AvatarUpload";
 
 const statusLabels: Record<string, { label: string; color: string }> = {
   free_agent: { label: "Kontraktslös", color: "bg-neon/10 text-neon border-neon/20" },
@@ -120,13 +121,22 @@ const PlayerProfile = () => {
           
           <div className="px-6 md:px-8 pb-6 -mt-16">
             <div className="flex flex-col lg:flex-row lg:items-end gap-6">
-              <div className="w-28 h-28 rounded-2xl bg-neon border-4 border-card flex items-center justify-center flex-shrink-0 overflow-hidden">
-                {player.avatarUrl ? (
-                  <img src={player.avatarUrl} alt={player.name} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="font-display text-4xl font-bold text-neon-foreground">{initials}</span>
-                )}
-              </div>
+              {user?.id === id ? (
+                <AvatarUpload
+                  userId={id!}
+                  currentUrl={player.avatarUrl}
+                  onUploaded={() => {}}
+                  name={player.name}
+                />
+              ) : (
+                <div className="w-28 h-28 rounded-2xl bg-neon border-4 border-card flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {player.avatarUrl ? (
+                    <img src={player.avatarUrl} alt={player.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="font-display text-4xl font-bold text-neon-foreground">{initials}</span>
+                  )}
+                </div>
+              )}
 
               <div className="flex-1">
                 <div className="flex flex-wrap items-center gap-3 mb-1">
