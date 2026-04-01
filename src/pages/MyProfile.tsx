@@ -10,8 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
-import { Save, User, Calendar, Eye, ClipboardList, EyeOff } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Save, User, Calendar, Eye, ClipboardList, EyeOff, BarChart3, XCircle } from "lucide-react";
 import AvatarUpload from "@/components/AvatarUpload";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
@@ -38,6 +38,7 @@ const contractStatuses = [
 const MyProfile = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [position, setPosition] = useState("");
@@ -49,6 +50,16 @@ const MyProfile = () => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [contractStatus, setContractStatus] = useState("free_agent");
   const [visibility, setVisibility] = useState("visible");
+
+  // Statistics state
+  const [statSeason, setStatSeason] = useState("2024/2025");
+  const [statMatches, setStatMatches] = useState("0");
+  const [statGoals, setStatGoals] = useState("0");
+  const [statAssists, setStatAssists] = useState("0");
+  const [statYellow, setStatYellow] = useState("0");
+  const [statRed, setStatRed] = useState("0");
+  const [statMinutes, setStatMinutes] = useState("0");
+  const [savingStats, setSavingStats] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -124,6 +135,32 @@ const MyProfile = () => {
     enabled: !!user && !loading,
   });
 
+  // Fetch player statistics
+  const { data: myStats } = useQuery({
+    queryKey: ["my-stats", user?.id, statSeason],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("player_statistics")
+        .select("*")
+        .eq("user_id", user!.id)
+        .eq("season", statSeason)
+        .maybeSingle();
+      if (data) {
+        setStatMatches(data.matches?.toString() || "0");
+        setStatGoals(data.goals?.toString() || "0");
+        setStatAssists(data.assists?.toString() || "0");
+        setStatYellow(data.yellow_cards?.toString() || "0");
+        setStatRed(data.red_cards?.toString() || "0");
+        setStatMinutes(data.minutes_played?.toString() || "0");
+      } else {
+        setStatMatches("0"); setStatGoals("0"); setStatAssists("0");
+        setStatYellow("0"); setStatRed("0"); setStatMinutes("0");
+      }
+      return data;
+    },
+    enabled: !!user && !loading,
+  });
+
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
@@ -167,6 +204,46 @@ const MyProfile = () => {
     }
   };
 
+  const handleSaveStats = async () => {
+    if (!user) return;
+    setSavingStats(true);
+    const payload = {
+      user_id: user.id,
+      season: statSeason,
+      matches: parseInt(statMatches) || 0,
+      goals: parseInt(statGoals) || 0,
+      assists: parseInt(statAssists) || 0,
+      yellow_cards: parseInt(statYellow) || 0,
+      red_cards: parseInt(statRed) || 0,
+      minutes_played: parseInt(statMinutes) || 0,
+    };
+
+    const { error } = await supabase
+      .from("player_statistics")
+      .upsert(payload, { onConflict: "user_id,season" });
+
+    if (error) {
+      toast({ title: "Fel", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Sparad!", description: "Statistik uppdaterad." });
+      queryClient.invalidateQueries({ queryKey: ["my-stats"] });
+    }
+    setSavingStats(false);
+  };
+
+  const handleCancelBooking = async (bookingId: string) => {
+    const { error } = await supabase
+      .from("bookings")
+      .update({ status: "cancelled" })
+      .eq("id", bookingId);
+    if (error) {
+      toast({ title: "Fel", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Avbokad", description: "Bokningen har avbokats." });
+      queryClient.invalidateQueries({ queryKey: ["my-bookings"] });
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <Layout>
@@ -201,6 +278,9 @@ const MyProfile = () => {
             <TabsTrigger value="edit" className="gap-2">
               <User className="h-4 w-4" /> Redigera profil
             </TabsTrigger>
+            <TabsTrigger value="statistics" className="gap-2">
+              <BarChart3 className="h-4 w-4" /> Statistik
+            </TabsTrigger>
             <TabsTrigger value="dashboard" className="gap-2">
               <ClipboardList className="h-4 w-4" /> Dashboard
             </TabsTrigger>
@@ -220,7 +300,6 @@ const MyProfile = () => {
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div className="space-y-2">
                   <Label>Stark fot</Label>
                   <Select value={preferredFoot} onValueChange={setPreferredFoot}>
@@ -237,11 +316,7 @@ const MyProfile = () => {
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="age">Ålder</Label>
-                  <Input
-                    id="age" type="number" min="10" max="50"
-                    placeholder="T.ex. 22" value={age}
-                    onChange={e => setAge(e.target.value)}
-                  />
+                  <Input id="age" type="number" min="10" max="50" placeholder="T.ex. 22" value={age} onChange={e => setAge(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label>Region</Label>
@@ -288,10 +363,7 @@ const MyProfile = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="bio">Om mig</Label>
-                <Textarea
-                  id="bio" placeholder="Berätta om dig själv som fotbollsspelare..."
-                  value={bio} onChange={e => setBio(e.target.value)} rows={4}
-                />
+                <Textarea id="bio" placeholder="Berätta om dig själv som fotbollsspelare..." value={bio} onChange={e => setBio(e.target.value)} rows={4} />
               </div>
 
               <Button onClick={handleSave} disabled={saving} className="w-full" size="lg">
@@ -301,8 +373,53 @@ const MyProfile = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="statistics">
+            <div className="rounded-2xl border border-border bg-card p-6 md:p-8 space-y-6">
+              <div className="space-y-2">
+                <Label>Säsong</Label>
+                <Select value={statSeason} onValueChange={setStatSeason}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2024/2025">2024/2025</SelectItem>
+                    <SelectItem value="2023/2024">2023/2024</SelectItem>
+                    <SelectItem value="2022/2023">2022/2023</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Matcher</Label>
+                  <Input type="number" min="0" value={statMatches} onChange={e => setStatMatches(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Mål</Label>
+                  <Input type="number" min="0" value={statGoals} onChange={e => setStatGoals(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Assists</Label>
+                  <Input type="number" min="0" value={statAssists} onChange={e => setStatAssists(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Gula kort</Label>
+                  <Input type="number" min="0" value={statYellow} onChange={e => setStatYellow(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Röda kort</Label>
+                  <Input type="number" min="0" value={statRed} onChange={e => setStatRed(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Minuter</Label>
+                  <Input type="number" min="0" value={statMinutes} onChange={e => setStatMinutes(e.target.value)} />
+                </div>
+              </div>
+              <Button onClick={handleSaveStats} disabled={savingStats} className="w-full" size="lg">
+                <Save className="mr-2 h-4 w-4" />
+                {savingStats ? "Sparar..." : "Spara statistik"}
+              </Button>
+            </div>
+          </TabsContent>
+
           <TabsContent value="dashboard">
-            {/* Quick stats */}
             <div className="grid grid-cols-3 gap-4 mb-6">
               <div className="rounded-2xl border border-border bg-card p-4 text-center">
                 <p className="text-2xl font-bold text-foreground">{profileViewCount}</p>
@@ -318,7 +435,6 @@ const MyProfile = () => {
               </div>
             </div>
 
-            {/* Trial applications */}
             <div className="rounded-2xl border border-border bg-card p-6 mb-6">
               <h3 className="font-display font-semibold text-foreground mb-4 flex items-center gap-2">
                 <Calendar className="h-5 w-5" /> Mina provträningsanmälningar
@@ -330,20 +446,15 @@ const MyProfile = () => {
                   {myApplications.map((app: any) => (
                     <div key={app.id} className="flex items-center justify-between p-3 rounded-xl bg-muted">
                       <div>
-                        <p className="font-medium text-foreground text-sm">
-                          {app.trials?.title || "Provträning"}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {app.trials?.trial_date} • {app.trials?.location}
-                        </p>
+                        <p className="font-medium text-foreground text-sm">{app.trials?.title || "Provträning"}</p>
+                        <p className="text-xs text-muted-foreground">{app.trials?.trial_date} • {app.trials?.location}</p>
                       </div>
                       <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
                         app.status === "accepted" ? "bg-neon/10 text-neon" :
                         app.status === "rejected" ? "bg-destructive/10 text-destructive" :
                         "bg-muted-foreground/10 text-muted-foreground"
                       }`}>
-                        {app.status === "accepted" ? "Godkänd" :
-                         app.status === "rejected" ? "Nekad" : "Väntande"}
+                        {app.status === "accepted" ? "Godkänd" : app.status === "rejected" ? "Nekad" : "Väntande"}
                       </span>
                     </div>
                   ))}
@@ -351,7 +462,6 @@ const MyProfile = () => {
               )}
             </div>
 
-            {/* Bookings */}
             <div className="rounded-2xl border border-border bg-card p-6">
               <h3 className="font-display font-semibold text-foreground mb-4 flex items-center gap-2">
                 <ClipboardList className="h-5 w-5" /> Mina bokningar
@@ -359,30 +469,30 @@ const MyProfile = () => {
               {myBookings.length === 0 ? (
                 <div className="text-center py-6">
                   <p className="text-sm text-muted-foreground mb-3">Inga bokningar ännu.</p>
-                  <Link to="/search-staff">
-                    <Button variant="outline" size="sm">Hitta personal</Button>
-                  </Link>
+                  <Link to="/search-staff"><Button variant="outline" size="sm">Hitta personal</Button></Link>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {myBookings.map((b: any) => (
                     <div key={b.id} className="flex items-center justify-between p-3 rounded-xl bg-muted">
                       <div>
-                        <p className="font-medium text-foreground text-sm">
-                          {b.service_name || "Session"}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {b.booking_date} • {b.start_time?.slice(0, 5)} - {b.end_time?.slice(0, 5)}
-                        </p>
+                        <p className="font-medium text-foreground text-sm">{b.service_name || "Session"}</p>
+                        <p className="text-xs text-muted-foreground">{b.booking_date} • {b.start_time?.slice(0, 5)} - {b.end_time?.slice(0, 5)}</p>
                       </div>
-                      <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
-                        b.status === "confirmed" ? "bg-neon/10 text-neon" :
-                        b.status === "cancelled" ? "bg-destructive/10 text-destructive" :
-                        "bg-muted-foreground/10 text-muted-foreground"
-                      }`}>
-                        {b.status === "confirmed" ? "Bekräftad" :
-                         b.status === "cancelled" ? "Avbokad" : "Väntande"}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
+                          b.status === "confirmed" ? "bg-neon/10 text-neon" :
+                          b.status === "cancelled" ? "bg-destructive/10 text-destructive" :
+                          "bg-muted-foreground/10 text-muted-foreground"
+                        }`}>
+                          {b.status === "confirmed" ? "Bekräftad" : b.status === "cancelled" ? "Avbokad" : "Väntande"}
+                        </span>
+                        {b.status !== "cancelled" && (
+                          <button onClick={() => handleCancelBooking(b.id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive transition-colors" title="Avboka">
+                            <XCircle className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

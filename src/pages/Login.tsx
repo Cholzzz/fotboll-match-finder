@@ -39,9 +39,9 @@ const Login = () => {
           .single();
 
         if (roles?.role === 'club') {
-          navigate('/club-dashboard');
+          navigate('/dashboard');
         } else if (['physiotherapist', 'coach', 'analyst', 'scout', 'nutritionist', 'mental_coach'].includes(roles?.role || '')) {
-          navigate('/search-staff');
+          navigate('/my-staff-profile');
         } else if (roles?.role === 'player') {
           navigate('/my-profile');
         } else {

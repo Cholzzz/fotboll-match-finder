@@ -3,26 +3,61 @@ import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Search, Grid3X3, List, Bookmark, BookmarkCheck,
-  MapPin, Eye, X, Calendar, Users
+  MapPin, Eye, X, Calendar, Users, Building2, Save
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { toast } from "@/hooks/use-toast";
+import AvatarUpload from "@/components/AvatarUpload";
 
 const ClubDashboard = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
   const [positionFilter, setPositionFilter] = useState("all");
   const [ageFilter, setAgeFilter] = useState("all");
   const [regionFilter, setRegionFilter] = useState("all");
-  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+
+  // Club profile editing state
+  const [clubName, setClubName] = useState("");
+  const [clubBio, setClubBio] = useState("");
+  const [clubLocation, setClubLocation] = useState("");
+  const [clubPhone, setClubPhone] = useState("");
+  const [clubAvatarUrl, setClubAvatarUrl] = useState<string | null>(null);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileLoaded, setProfileLoaded] = useState(false);
+
+  // Fetch club profile
+  useQuery({
+    queryKey: ["club-own-profile", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (data) {
+        setClubName(data.full_name);
+        setClubBio(data.bio || "");
+        setClubLocation(data.location || "");
+        setClubPhone(data.phone || "");
+        setClubAvatarUrl(data.avatar_url);
+        setProfileLoaded(true);
+      }
+      return data;
+    },
+    enabled: !!user,
+  });
 
   // Fetch real players from DB
   const { data: players = [], isLoading } = useQuery({
@@ -43,6 +78,37 @@ const ClubDashboard = () => {
     },
   });
 
+  // Fetch saved players from DB
+  const { data: savedPlayerIds = new Set<string>() } = useQuery({
+    queryKey: ["saved-players", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("saved_players")
+        .select("player_user_id")
+        .eq("club_user_id", user!.id);
+      return new Set((data || []).map((r: any) => r.player_user_id));
+    },
+    enabled: !!user,
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: async (playerId: string) => {
+      if (savedPlayerIds.has(playerId)) {
+        await supabase
+          .from("saved_players")
+          .delete()
+          .eq("club_user_id", user!.id)
+          .eq("player_user_id", playerId);
+      } else {
+        await supabase.from("saved_players").insert({
+          club_user_id: user!.id,
+          player_user_id: playerId,
+        });
+      }
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["saved-players"] }),
+  });
+
   // Fetch club's trials
   const { data: myTrials = [] } = useQuery({
     queryKey: ["club-trials", user?.id],
@@ -58,12 +124,25 @@ const ClubDashboard = () => {
     enabled: !!user,
   });
 
-  const toggleSave = (id: string) => {
-    setSavedIds((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    setSavingProfile(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        full_name: clubName,
+        bio: clubBio || null,
+        location: clubLocation || null,
+        phone: clubPhone || null,
+      })
+      .eq("user_id", user.id);
+
+    if (error) {
+      toast({ title: "Fel", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Sparad!", description: "Klubbprofilen har uppdaterats." });
+    }
+    setSavingProfile(false);
   };
 
   const filteredPlayers = players.filter((player: any) => {
@@ -77,12 +156,9 @@ const ClubDashboard = () => {
     return true;
   });
 
-  const savedPlayers = players.filter((p: any) => savedIds.has(p.id));
-
-  // Get unique positions and regions for filter dropdowns
+  const savedPlayers = players.filter((p: any) => savedPlayerIds.has(p.id));
   const uniquePositions = [...new Set(players.map((p: any) => p.position).filter((p: string) => p !== "Okänd"))];
   const uniqueRegions = [...new Set(players.map((p: any) => p.region).filter((r: string) => r !== "Okänd"))];
-
   const initials = (name: string) => name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
 
   return (
@@ -93,7 +169,6 @@ const ClubDashboard = () => {
           <p className="text-muted-foreground mt-2">Sök och hantera spelare för din klubb</p>
         </div>
 
-        {/* Quick stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="rounded-2xl border border-border bg-card p-4 text-center">
             <p className="text-2xl font-bold text-foreground">{players.length}</p>
@@ -129,29 +204,24 @@ const ClubDashboard = () => {
             <TabsTrigger value="trials" className="gap-2">
               <Calendar className="h-4 w-4" /> Provträningar
             </TabsTrigger>
+            <TabsTrigger value="club-profile" className="gap-2">
+              <Building2 className="h-4 w-4" /> Klubbprofil
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="search">
-            {/* Filters */}
             <div className="rounded-2xl border border-border bg-card p-4 mb-6">
               <div className="flex flex-col lg:flex-row gap-4">
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Sök spelare..."
-                    className="pl-10"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
+                  <Input placeholder="Sök spelare..." className="pl-10" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                 </div>
                 <div className="flex flex-wrap gap-3">
                   <Select value={positionFilter} onValueChange={setPositionFilter}>
                     <SelectTrigger className="w-[160px]"><SelectValue placeholder="Position" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Alla positioner</SelectItem>
-                      {uniquePositions.map((p) => (
-                        <SelectItem key={p} value={p}>{p}</SelectItem>
-                      ))}
+                      {uniquePositions.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                     </SelectContent>
                   </Select>
                   <Select value={ageFilter} onValueChange={setAgeFilter}>
@@ -168,22 +238,14 @@ const ClubDashboard = () => {
                     <SelectTrigger className="w-[140px]"><SelectValue placeholder="Region" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Alla regioner</SelectItem>
-                      {uniqueRegions.map((r) => (
-                        <SelectItem key={r} value={r}>{r}</SelectItem>
-                      ))}
+                      {uniqueRegions.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
                     </SelectContent>
                   </Select>
                   <div className="flex border border-border rounded-lg overflow-hidden">
-                    <button
-                      onClick={() => setViewMode("grid")}
-                      className={`p-2.5 transition-colors ${viewMode === "grid" ? "bg-foreground text-background" : "hover:bg-muted"}`}
-                    >
+                    <button onClick={() => setViewMode("grid")} className={`p-2.5 transition-colors ${viewMode === "grid" ? "bg-foreground text-background" : "hover:bg-muted"}`}>
                       <Grid3X3 className="h-4 w-4" />
                     </button>
-                    <button
-                      onClick={() => setViewMode("list")}
-                      className={`p-2.5 transition-colors ${viewMode === "list" ? "bg-foreground text-background" : "hover:bg-muted"}`}
-                    >
+                    <button onClick={() => setViewMode("list")} className={`p-2.5 transition-colors ${viewMode === "list" ? "bg-foreground text-background" : "hover:bg-muted"}`}>
                       <List className="h-4 w-4" />
                     </button>
                   </div>
@@ -205,29 +267,22 @@ const ClubDashboard = () => {
                       <div className="flex items-center gap-3">
                         <Avatar className="h-12 w-12 rounded-xl">
                           <AvatarImage src={player.avatarUrl || undefined} />
-                          <AvatarFallback className="rounded-xl bg-foreground text-background font-display text-lg">
-                            {initials(player.name)}
-                          </AvatarFallback>
+                          <AvatarFallback className="rounded-xl bg-foreground text-background font-display text-lg">{initials(player.name)}</AvatarFallback>
                         </Avatar>
                         <div>
                           <h3 className="font-semibold text-foreground">{player.name}</h3>
                           <p className="text-sm text-muted-foreground">{player.position} • {player.age} år</p>
                         </div>
                       </div>
-                      <button
-                        onClick={() => toggleSave(player.id)}
-                        className={`p-2 rounded-lg transition-colors ${savedIds.has(player.id) ? "text-neon" : "text-muted-foreground hover:text-foreground"}`}
-                      >
-                        {savedIds.has(player.id) ? <BookmarkCheck className="h-5 w-5" /> : <Bookmark className="h-5 w-5" />}
+                      <button onClick={() => saveMutation.mutate(player.id)} className={`p-2 rounded-lg transition-colors ${savedPlayerIds.has(player.id) ? "text-neon" : "text-muted-foreground hover:text-foreground"}`}>
+                        {savedPlayerIds.has(player.id) ? <BookmarkCheck className="h-5 w-5" /> : <Bookmark className="h-5 w-5" />}
                       </button>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
                       <MapPin className="h-4 w-4" /> {player.region}
                     </div>
                     <Link to={`/player/${player.id}`}>
-                      <Button variant="outline" className="w-full">
-                        <Eye className="mr-2 h-4 w-4" /> Visa profil
-                      </Button>
+                      <Button variant="outline" className="w-full"><Eye className="mr-2 h-4 w-4" /> Visa profil</Button>
                     </Link>
                   </div>
                 ))}
@@ -235,9 +290,7 @@ const ClubDashboard = () => {
             ) : (
               <div className="rounded-2xl border border-border bg-card overflow-hidden">
                 <table className="data-table">
-                  <thead>
-                    <tr><th>Spelare</th><th>Position</th><th>Ålder</th><th>Region</th><th></th></tr>
-                  </thead>
+                  <thead><tr><th>Spelare</th><th>Position</th><th>Ålder</th><th>Region</th><th></th></tr></thead>
                   <tbody>
                     {filteredPlayers.map((player: any) => (
                       <tr key={player.id}>
@@ -245,9 +298,7 @@ const ClubDashboard = () => {
                           <div className="flex items-center gap-3">
                             <Avatar className="h-8 w-8 rounded-lg">
                               <AvatarImage src={player.avatarUrl || undefined} />
-                              <AvatarFallback className="rounded-lg bg-foreground text-background text-xs">
-                                {initials(player.name)}
-                              </AvatarFallback>
+                              <AvatarFallback className="rounded-lg bg-foreground text-background text-xs">{initials(player.name)}</AvatarFallback>
                             </Avatar>
                             <span className="font-medium text-foreground">{player.name}</span>
                           </div>
@@ -257,15 +308,10 @@ const ClubDashboard = () => {
                         <td>{player.region}</td>
                         <td>
                           <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => toggleSave(player.id)}
-                              className={`p-1.5 rounded transition-colors ${savedIds.has(player.id) ? "text-neon" : "text-muted-foreground hover:text-foreground"}`}
-                            >
-                              {savedIds.has(player.id) ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
+                            <button onClick={() => saveMutation.mutate(player.id)} className={`p-1.5 rounded transition-colors ${savedPlayerIds.has(player.id) ? "text-neon" : "text-muted-foreground hover:text-foreground"}`}>
+                              {savedPlayerIds.has(player.id) ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
                             </button>
-                            <Link to={`/player/${player.id}`}>
-                              <Button variant="ghost" size="sm">Visa</Button>
-                            </Link>
+                            <Link to={`/player/${player.id}`}><Button variant="ghost" size="sm">Visa</Button></Link>
                           </div>
                         </td>
                       </tr>
@@ -280,9 +326,7 @@ const ClubDashboard = () => {
             {savedPlayers.length === 0 ? (
               <div className="text-center py-16">
                 <Bookmark className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="font-display text-lg font-semibold text-foreground mb-2">
-                  Din bevakningslista är tom
-                </h3>
+                <h3 className="font-display text-lg font-semibold text-foreground mb-2">Din bevakningslista är tom</h3>
                 <p className="text-muted-foreground">Spara spelare du vill följa upp.</p>
               </div>
             ) : (
@@ -292,9 +336,7 @@ const ClubDashboard = () => {
                     <div className="flex items-center gap-4">
                       <Avatar className="h-14 w-14 rounded-xl">
                         <AvatarImage src={player.avatarUrl || undefined} />
-                        <AvatarFallback className="rounded-xl bg-foreground text-background font-display text-xl">
-                          {initials(player.name)}
-                        </AvatarFallback>
+                        <AvatarFallback className="rounded-xl bg-foreground text-background font-display text-xl">{initials(player.name)}</AvatarFallback>
                       </Avatar>
                       <div>
                         <h3 className="font-semibold text-foreground text-lg">{player.name}</h3>
@@ -302,10 +344,8 @@ const ClubDashboard = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Link to={`/player/${player.id}`}>
-                        <Button variant="outline" size="sm">Visa profil</Button>
-                      </Link>
-                      <button onClick={() => toggleSave(player.id)} className="p-2 rounded-lg text-muted-foreground hover:text-destructive">
+                      <Link to={`/player/${player.id}`}><Button variant="outline" size="sm">Visa profil</Button></Link>
+                      <button onClick={() => saveMutation.mutate(player.id)} className="p-2 rounded-lg text-muted-foreground hover:text-destructive">
                         <X className="h-4 w-4" />
                       </button>
                     </div>
@@ -321,17 +361,13 @@ const ClubDashboard = () => {
                 <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="font-display text-lg font-semibold text-foreground mb-2">Inga provträningar</h3>
                 <p className="text-muted-foreground mb-6">Skapa din första provträning under Provträningar-sidan.</p>
-                <Link to="/trials">
-                  <Button variant="neon">Gå till provträningar</Button>
-                </Link>
+                <Link to="/trials"><Button variant="neon">Gå till provträningar</Button></Link>
               </div>
             ) : (
               <div className="grid md:grid-cols-2 gap-4">
                 {myTrials.map((trial: any) => (
                   <div key={trial.id} className="rounded-2xl border border-border bg-card p-5">
-                    <h3 className="font-display font-semibold text-foreground mb-2">
-                      {trial.title || "Provträning"}
-                    </h3>
+                    <h3 className="font-display font-semibold text-foreground mb-2">{trial.title || "Provträning"}</h3>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                       <Calendar className="h-4 w-4" /> {trial.trial_date}
                     </div>
@@ -345,6 +381,36 @@ const ClubDashboard = () => {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="club-profile">
+            <div className="max-w-2xl mx-auto rounded-2xl border border-border bg-card p-6 md:p-8 space-y-6">
+              <div className="flex flex-col items-center gap-4">
+                {profileLoaded && (
+                  <AvatarUpload userId={user!.id} currentUrl={clubAvatarUrl} onUploaded={setClubAvatarUrl} name={clubName} />
+                )}
+                <h2 className="font-display text-xl font-semibold text-foreground">Redigera klubbprofil</h2>
+              </div>
+              <div className="space-y-2">
+                <Label>Klubbnamn</Label>
+                <Input value={clubName} onChange={(e) => setClubName(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Plats</Label>
+                <Input placeholder="T.ex. Stockholm" value={clubLocation} onChange={(e) => setClubLocation(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Telefon</Label>
+                <Input placeholder="070-XXX XX XX" value={clubPhone} onChange={(e) => setClubPhone(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Om klubben</Label>
+                <Textarea placeholder="Beskriv klubben..." value={clubBio} onChange={(e) => setClubBio(e.target.value)} rows={4} />
+              </div>
+              <Button onClick={handleSaveProfile} disabled={savingProfile} className="w-full" size="lg">
+                <Save className="mr-2 h-4 w-4" /> {savingProfile ? "Sparar..." : "Spara profil"}
+              </Button>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

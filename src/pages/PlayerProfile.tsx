@@ -14,6 +14,65 @@ import ConnectButton from "@/components/ConnectButton";
 import { useConnectionCount } from "@/hooks/useConnections";
 import { useAuth } from "@/contexts/AuthContext";
 
+const PlayerStats = ({ userId }: { userId: string }) => {
+  const { data: stats = [], isLoading } = useQuery({
+    queryKey: ["player-stats-public", userId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("player_statistics")
+        .select("*")
+        .eq("user_id", userId)
+        .order("season", { ascending: false });
+      return data || [];
+    },
+  });
+
+  if (isLoading) return <Skeleton className="h-32 rounded-2xl" />;
+  if (stats.length === 0) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-6 text-center">
+        <p className="text-muted-foreground">Ingen statistik tillagd ännu.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {stats.map((s: any) => (
+        <div key={s.id} className="rounded-2xl border border-border bg-card p-6">
+          <h3 className="font-display font-semibold text-foreground mb-4">Säsong {s.season}</h3>
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-foreground">{s.matches}</p>
+              <p className="text-xs text-muted-foreground">Matcher</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-foreground">{s.goals}</p>
+              <p className="text-xs text-muted-foreground">Mål</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-foreground">{s.assists}</p>
+              <p className="text-xs text-muted-foreground">Assists</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-neon">{s.yellow_cards}</p>
+              <p className="text-xs text-muted-foreground">Gula kort</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-destructive">{s.red_cards}</p>
+              <p className="text-xs text-muted-foreground">Röda kort</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-foreground">{s.minutes_played}</p>
+              <p className="text-xs text-muted-foreground">Minuter</p>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const statusLabels: Record<string, { label: string; color: string }> = {
   free_agent: { label: "Kontraktslös", color: "bg-neon/10 text-neon border-neon/20" },
   looking: { label: "Söker klubb", color: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
@@ -229,10 +288,7 @@ const PlayerProfile = () => {
             </TabsList>
 
             <TabsContent value="statistics" className="mt-6">
-              <div className="rounded-2xl border border-border bg-card p-6">
-                <h3 className="font-display text-lg font-semibold text-foreground mb-4">Statistik</h3>
-                <p className="text-muted-foreground">Statistik kommer snart.</p>
-              </div>
+              <PlayerStats userId={id!} />
             </TabsContent>
 
             <TabsContent value="highlights" className="mt-6">

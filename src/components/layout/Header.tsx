@@ -13,12 +13,32 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import NotificationBell from "@/components/NotificationBell";
+import { useQuery } from "@tanstack/react-query";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+
+  const { data: userRole } = useQuery({
+    queryKey: ["user-role-header", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user!.id)
+        .single();
+      return data?.role || null;
+    },
+    enabled: !!user,
+  });
+
+  const getProfilePath = () => {
+    if (userRole === "club") return "/dashboard";
+    if (["physiotherapist", "coach", "analyst", "scout", "nutritionist", "mental_coach"].includes(userRole || "")) return "/my-staff-profile";
+    return "/my-profile";
+  };
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -123,7 +143,7 @@ const Header = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem asChild>
-                    <Link to="/my-profile" className="flex items-center gap-2">
+                    <Link to={getProfilePath()} className="flex items-center gap-2">
                       <User className="h-4 w-4" />
                       Min profil
                     </Link>
@@ -188,7 +208,7 @@ const Header = () => {
             <div className="flex flex-col gap-2 pt-4 border-t border-border">
               {user ? (
                 <>
-                  <Link to="/my-profile" onClick={() => setIsMenuOpen(false)}>
+                  <Link to={getProfilePath()} onClick={() => setIsMenuOpen(false)}>
                     <Button variant="outline" className="w-full gap-2">
                       <User className="h-4 w-4" /> Min profil
                     </Button>
