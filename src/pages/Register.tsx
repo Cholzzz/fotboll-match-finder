@@ -51,6 +51,10 @@ const Register = () => {
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [showStaffPicker, setShowStaffPicker] = useState(initialCategory === "staff");
+  const [bio, setBio] = useState("");
+  const [location, setLocation] = useState("");
+  const [availableStart, setAvailableStart] = useState("09:00");
+  const [availableEnd, setAvailableEnd] = useState("17:00");
   const staffRoles = roleOptions.filter(r => r.category === "staff");
 
   const handleSubmit = async (e: React.FormEvent) => {
