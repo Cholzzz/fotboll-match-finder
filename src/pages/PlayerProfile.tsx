@@ -183,15 +183,25 @@ const PlayerProfile = () => {
 
         {/* Main Content */}
         <div className="mt-8">
-          <Tabs defaultValue="highlights" className="w-full">
+          <Tabs defaultValue="statistics" className="w-full">
             <TabsList className="w-full justify-start border-b border-border rounded-none bg-transparent p-0 h-auto">
-              <TabsTrigger value="highlights" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-6 py-3">
-                <Play className="h-4 w-4 mr-2" /> Highlights
+              <TabsTrigger value="statistics" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-6 py-3">
+                <BarChart3 className="h-4 w-4 mr-2" /> Statistik
               </TabsTrigger>
               <TabsTrigger value="about" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-6 py-3">
                 <FileText className="h-4 w-4 mr-2" /> Om
               </TabsTrigger>
+              <TabsTrigger value="highlights" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-6 py-3">
+                <Play className="h-4 w-4 mr-2" /> Highlights
+              </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="statistics" className="mt-6">
+              <div className="rounded-2xl border border-border bg-card p-6">
+                <h3 className="font-display text-lg font-semibold text-foreground mb-4">Statistik</h3>
+                <p className="text-muted-foreground">Statistik kommer snart.</p>
+              </div>
+            </TabsContent>
 
             <TabsContent value="highlights" className="mt-6">
               {player.highlights.length > 0 ? (
