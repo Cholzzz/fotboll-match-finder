@@ -3,7 +3,8 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Building2, Mail, Lock, ArrowRight, ArrowLeft, Stethoscope, BarChart3, Search, Users, Apple, Brain, Briefcase } from "lucide-react";
+import { User, Building2, Mail, Lock, ArrowRight, ArrowLeft, Stethoscope, BarChart3, Search, Users, Apple, Brain, Briefcase, MapPin, Clock, FileText } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -50,6 +51,10 @@ const Register = () => {
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [showStaffPicker, setShowStaffPicker] = useState(initialCategory === "staff");
+  const [bio, setBio] = useState("");
+  const [location, setLocation] = useState("");
+  const [availableStart, setAvailableStart] = useState("09:00");
+  const [availableEnd, setAvailableEnd] = useState("17:00");
   const staffRoles = roleOptions.filter(r => r.category === "staff");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -66,6 +71,12 @@ const Register = () => {
           data: {
             full_name: fullName,
             role: selectedRole,
+            ...(isStaffRole && {
+              bio,
+              location,
+              available_hours_start: availableStart,
+              available_hours_end: availableEnd,
+            }),
           }
         }
       });
@@ -89,6 +100,7 @@ const Register = () => {
   };
 
   const getSelectedRoleOption = () => roleOptions.find(r => r.id === selectedRole);
+  const isStaffRole = selectedRole && !["player", "club"].includes(selectedRole);
 
   return (
     <div className="min-h-screen flex">
@@ -272,6 +284,64 @@ const Register = () => {
                   />
                 </div>
               </div>
+
+              {isStaffRole && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="bio">Om dig & din bakgrund</Label>
+                    <div className="relative">
+                      <FileText className="absolute left-3.5 top-3 h-4 w-4 text-muted-foreground" />
+                      <Textarea
+                        id="bio"
+                        placeholder="Berätta om din erfarenhet, utbildning och specialområden..."
+                        value={bio}
+                        onChange={(e) => setBio(e.target.value)}
+                        className="pl-10 min-h-[80px]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Adress / Plats för bokningar</Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="location"
+                        type="text"
+                        placeholder="T.ex. Göteborg, Kungsportsavenyn 1"
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Tillgängliga tider</Label>
+                    <div className="flex items-center gap-3">
+                      <div className="relative flex-1">
+                        <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          type="time"
+                          value={availableStart}
+                          onChange={(e) => setAvailableStart(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
+                      <span className="text-muted-foreground text-sm">till</span>
+                      <div className="relative flex-1">
+                        <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          type="time"
+                          value={availableEnd}
+                          onChange={(e) => setAvailableEnd(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
 
               <Button type="submit" className="w-full" size="lg" disabled={loading}>
                 {loading ? "Skapar konto..." : "Skapa konto"}
