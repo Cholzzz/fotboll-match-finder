@@ -122,12 +122,35 @@ const PlayerProfile = () => {
           <div className="px-6 md:px-8 pb-6 -mt-16">
             <div className="flex flex-col lg:flex-row lg:items-end gap-6">
               {user?.id === id ? (
-                <AvatarUpload
-                  userId={id!}
-                  currentUrl={player.avatarUrl}
-                  onUploaded={() => {}}
-                  name={player.name}
-                />
+                <div className="relative w-28 h-28 rounded-2xl bg-neon border-4 border-card flex items-center justify-center flex-shrink-0 overflow-hidden group cursor-pointer"
+                  onClick={() => document.getElementById('player-avatar-input')?.click()}
+                >
+                  {player.avatarUrl ? (
+                    <img src={player.avatarUrl} alt={player.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="font-display text-4xl font-bold text-neon-foreground">{initials}</span>
+                  )}
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl">
+                    <Camera className="h-6 w-6 text-white" />
+                  </div>
+                  <input
+                    id="player-avatar-input"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (file.size > 5 * 1024 * 1024) return;
+                      const ext = file.name.split('.').pop();
+                      const path = `${id}/${Date.now()}.${ext}`;
+                      await supabase.storage.from('avatars').upload(path, file, { upsert: true });
+                      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path);
+                      await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('user_id', id!);
+                      window.location.reload();
+                    }}
+                  />
+                </div>
               ) : (
                 <div className="w-28 h-28 rounded-2xl bg-neon border-4 border-card flex items-center justify-center flex-shrink-0 overflow-hidden">
                   {player.avatarUrl ? (
