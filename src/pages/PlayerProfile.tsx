@@ -229,10 +229,7 @@ const PlayerProfile = () => {
             </TabsList>
 
             <TabsContent value="statistics" className="mt-6">
-              <div className="rounded-2xl border border-border bg-card p-6">
-                <h3 className="font-display text-lg font-semibold text-foreground mb-4">Statistik</h3>
-                <p className="text-muted-foreground">Statistik kommer snart.</p>
-              </div>
+              <PlayerStats userId={id!} />
             </TabsContent>
 
             <TabsContent value="highlights" className="mt-6">
