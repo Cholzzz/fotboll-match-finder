@@ -71,6 +71,12 @@ const Register = () => {
           data: {
             full_name: fullName,
             role: selectedRole,
+            ...(isStaffRole && {
+              bio,
+              location,
+              available_hours_start: availableStart,
+              available_hours_end: availableEnd,
+            }),
           }
         }
       });
