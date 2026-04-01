@@ -36,6 +36,7 @@ const MyProfile = () => {
   const [region, setRegion] = useState("");
   const [bio, setBio] = useState("");
   const [profileName, setProfileName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
