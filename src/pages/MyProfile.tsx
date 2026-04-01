@@ -51,6 +51,16 @@ const MyProfile = () => {
   const [contractStatus, setContractStatus] = useState("free_agent");
   const [visibility, setVisibility] = useState("visible");
 
+  // Statistics state
+  const [statSeason, setStatSeason] = useState("2024/2025");
+  const [statMatches, setStatMatches] = useState("0");
+  const [statGoals, setStatGoals] = useState("0");
+  const [statAssists, setStatAssists] = useState("0");
+  const [statYellow, setStatYellow] = useState("0");
+  const [statRed, setStatRed] = useState("0");
+  const [statMinutes, setStatMinutes] = useState("0");
+  const [savingStats, setSavingStats] = useState(false);
+
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate("/login"); return; }
