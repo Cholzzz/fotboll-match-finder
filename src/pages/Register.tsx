@@ -3,7 +3,8 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Building2, Mail, Lock, ArrowRight, ArrowLeft, Stethoscope, BarChart3, Search, Users, Apple, Brain, Briefcase } from "lucide-react";
+import { User, Building2, Mail, Lock, ArrowRight, ArrowLeft, Stethoscope, BarChart3, Search, Users, Apple, Brain, Briefcase, MapPin, Clock, FileText } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
