@@ -38,6 +38,7 @@ const contractStatuses = [
 const MyProfile = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [position, setPosition] = useState("");
