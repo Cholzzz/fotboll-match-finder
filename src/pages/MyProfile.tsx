@@ -126,11 +126,14 @@ const MyProfile = () => {
     <Layout>
       <div className="container py-8 max-w-2xl">
         <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 rounded-xl bg-neon flex items-center justify-center">
-              <User className="h-6 w-6 text-neon-foreground" />
-            </div>
-            <div>
+          <div className="flex flex-col items-center gap-4 mb-8">
+            <AvatarUpload
+              userId={user!.id}
+              currentUrl={avatarUrl}
+              onUploaded={setAvatarUrl}
+              name={profileName}
+            />
+            <div className="text-center">
               <h1 className="font-display text-2xl font-bold text-foreground">Min profil</h1>
               <p className="text-muted-foreground text-sm">
                 {profileName ? `Hej ${profileName}! ` : ""}Fyll i din spelarinformation
