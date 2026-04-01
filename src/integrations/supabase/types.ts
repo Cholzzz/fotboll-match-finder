@@ -321,6 +321,86 @@ export type Database = {
         }
         Relationships: []
       }
+      trial_applications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          player_user_id: string
+          status: string
+          trial_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          player_user_id: string
+          status?: string
+          trial_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          player_user_id?: string
+          status?: string
+          trial_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trial_applications_trial_id_fkey"
+            columns: ["trial_id"]
+            isOneToOne: false
+            referencedRelation: "trials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trials: {
+        Row: {
+          club_user_id: string
+          created_at: string
+          description: string | null
+          end_time: string
+          id: string
+          location: string
+          max_spots: number
+          positions: Json
+          start_time: string
+          title: string | null
+          trial_date: string
+          updated_at: string
+        }
+        Insert: {
+          club_user_id: string
+          created_at?: string
+          description?: string | null
+          end_time: string
+          id?: string
+          location: string
+          max_spots?: number
+          positions?: Json
+          start_time: string
+          title?: string | null
+          trial_date: string
+          updated_at?: string
+        }
+        Update: {
+          club_user_id?: string
+          created_at?: string
+          description?: string | null
+          end_time?: string
+          id?: string
+          location?: string
+          max_spots?: number
+          positions?: Json
+          start_time?: string
+          title?: string | null
+          trial_date?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
