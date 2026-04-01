@@ -100,6 +100,7 @@ const Register = () => {
   };
 
   const getSelectedRoleOption = () => roleOptions.find(r => r.id === selectedRole);
+  const isStaffRole = selectedRole && !["player", "club"].includes(selectedRole);
 
   return (
     <div className="min-h-screen flex">
