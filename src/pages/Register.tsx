@@ -285,6 +285,64 @@ const Register = () => {
                 </div>
               </div>
 
+              {isStaffRole && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="bio">Om dig & din bakgrund</Label>
+                    <div className="relative">
+                      <FileText className="absolute left-3.5 top-3 h-4 w-4 text-muted-foreground" />
+                      <Textarea
+                        id="bio"
+                        placeholder="Berätta om din erfarenhet, utbildning och specialområden..."
+                        value={bio}
+                        onChange={(e) => setBio(e.target.value)}
+                        className="pl-10 min-h-[80px]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Adress / Plats för bokningar</Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="location"
+                        type="text"
+                        placeholder="T.ex. Göteborg, Kungsportsavenyn 1"
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Tillgängliga tider</Label>
+                    <div className="flex items-center gap-3">
+                      <div className="relative flex-1">
+                        <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          type="time"
+                          value={availableStart}
+                          onChange={(e) => setAvailableStart(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
+                      <span className="text-muted-foreground text-sm">till</span>
+                      <div className="relative flex-1">
+                        <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          type="time"
+                          value={availableEnd}
+                          onChange={(e) => setAvailableEnd(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
               <Button type="submit" className="w-full" size="lg" disabled={loading}>
                 {loading ? "Skapar konto..." : "Skapa konto"}
                 <ArrowRight className="ml-2 h-4 w-4" />
