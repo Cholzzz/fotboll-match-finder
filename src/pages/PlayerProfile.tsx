@@ -13,6 +13,7 @@ import {
 import ConnectButton from "@/components/ConnectButton";
 import { useConnectionCount } from "@/hooks/useConnections";
 import { useAuth } from "@/contexts/AuthContext";
+import AvatarUpload from "@/components/AvatarUpload";
 
 const statusLabels: Record<string, { label: string; color: string }> = {
   free_agent: { label: "Kontraktslös", color: "bg-neon/10 text-neon border-neon/20" },
