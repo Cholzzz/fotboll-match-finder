@@ -21,6 +21,25 @@ const Header = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
 
+  const { data: userRole } = useQuery({
+    queryKey: ["user-role-header", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user!.id)
+        .single();
+      return data?.role || null;
+    },
+    enabled: !!user,
+  });
+
+  const getProfilePath = () => {
+    if (userRole === "club") return "/dashboard";
+    if (["physiotherapist", "coach", "analyst", "scout", "nutritionist", "mental_coach"].includes(userRole || "")) return "/my-staff-profile";
+    return "/my-profile";
+  };
+
   const isActive = (path: string) => location.pathname === path;
 
   const mainNavLinks = [
