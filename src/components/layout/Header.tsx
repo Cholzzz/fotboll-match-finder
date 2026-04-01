@@ -208,7 +208,7 @@ const Header = () => {
             <div className="flex flex-col gap-2 pt-4 border-t border-border">
               {user ? (
                 <>
-                  <Link to="/my-profile" onClick={() => setIsMenuOpen(false)}>
+                  <Link to={getProfilePath()} onClick={() => setIsMenuOpen(false)}>
                     <Button variant="outline" className="w-full gap-2">
                       <User className="h-4 w-4" /> Min profil
                     </Button>
