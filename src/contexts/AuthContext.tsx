@@ -25,7 +25,13 @@ async function ensureProfileAndRole(user: User) {
     .maybeSingle();
 
   if (!existing) {
-    await supabase.from("profiles").insert({ user_id: user.id, full_name: fullName });
+    await supabase.from("profiles").insert({
+      user_id: user.id,
+      full_name: fullName,
+      bio: meta?.bio || null,
+      location: meta?.location || null,
+    });
+  }
   }
 
   if (role) {
