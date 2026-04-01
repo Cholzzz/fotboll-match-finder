@@ -1,6 +1,9 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   User, 
   Building2, 
@@ -10,7 +13,6 @@ import {
   MessageCircle, 
   Calendar,
   Shield,
-  TrendingUp,
   Video,
   Play,
   Heart,
@@ -23,38 +25,75 @@ import {
   Stethoscope,
   Search,
   Apple,
-  Brain
+  Brain,
+  Star,
+  TrendingUp,
+  Globe
 } from "lucide-react";
 
 const Index = () => {
+  const { user, loading } = useAuth();
+
+  const { data: userRole } = useQuery({
+    queryKey: ["user-role-index", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user!.id)
+        .single();
+      return data?.role || null;
+    },
+    enabled: !!user,
+  });
+
+  // Redirect logged-in users to their dashboard
+  if (!loading && user && userRole) {
+    if (userRole === "club") return <Navigate to="/dashboard" replace />;
+    if (["physiotherapist", "coach", "analyst", "scout", "nutritionist", "mental_coach"].includes(userRole))
+      return <Navigate to="/my-staff-profile" replace />;
+    return <Navigate to="/my-profile" replace />;
+  }
+
   const features = [
     { 
       icon: BarChart3, 
       title: "Statistik & Data", 
-      description: "Säsongsdata, mål, assist – allt på ett ställe." 
+      description: "Säsongsdata, mål, assist och prestationshistorik – allt samlat." 
     },
     { 
       icon: Activity, 
       title: "Fysiska Tester", 
-      description: "Sprint, uthållighet, explosivitet – verifierat." 
+      description: "Sprint, uthållighet, explosivitet – verifierade resultat." 
     },
     { 
       icon: Video, 
       title: "Highlights", 
-      description: "Visa din prestation med videoklipp." 
+      description: "Visa din prestation med videoklipp i TikTok-format." 
     },
     { 
       icon: MessageCircle, 
       title: "Direktkontakt", 
-      description: "Kommunicera direkt med klubbar." 
+      description: "Kommunicera direkt med klubbar och spelare." 
+    },
+    {
+      icon: Calendar,
+      title: "Provträningar",
+      description: "Klubbar publicerar, spelare anmäler sig – enkelt."
+    },
+    {
+      icon: Stethoscope,
+      title: "Boka Personal",
+      description: "Fysio, tränare, nutritionist – boka direkt."
     },
   ];
 
   const playerBenefits = [
     "Visa din prestation med data, inte kontakter",
-    "Ladda upp verifierade fysiska testresultat",
+    "Ladda upp highlights och fysiska testresultat",
     "Bli upptäckt av klubbar som söker din profil",
     "Kommunicera direkt med intresserade klubbar",
+    "Anmäl dig till provträningar",
   ];
 
   const clubBenefits = [
@@ -62,18 +101,30 @@ const Index = () => {
     "Granska statistik och prestationsdata innan kontakt",
     "Spara spelare i din bevakningslista",
     "Bjud in till provträning direkt via plattformen",
+    "Kontakta spelare direkt via meddelanden",
+  ];
+
+  const staffBenefits = [
+    "Skapa din professionella profil med specialisering",
+    "Publicera dina tillgängliga tider för bokning",
+    "Bli hittad av spelare som behöver dina tjänster",
+    "Hantera bokningar och intäkter från ett dashboard",
+  ];
+
+  const stats = [
+    { value: "100%", label: "Gratis att börja" },
+    { value: "6+", label: "Personalroller" },
+    { value: "∞", label: "Spelare & klubbar" },
+    { value: "24/7", label: "Tillgängligt" },
   ];
 
   return (
     <Layout>
-      {/* Hero Section - Premium Dark */}
-      <section className="hero-premium min-h-[90vh] flex items-center">
-        {/* Animated grid background */}
+      {/* Hero Section */}
+      <section className="hero-premium min-h-[92vh] flex items-center relative">
         <div className="hero-grid" />
-        
-        {/* Floating particles */}
         <div className="hero-particles">
-          {[...Array(6)].map((_, i) => (
+          {[...Array(8)].map((_, i) => (
             <div
               key={i}
               className="particle"
@@ -91,28 +142,24 @@ const Index = () => {
         
         <div className="container relative z-10 py-20 lg:py-32">
           <div className="max-w-4xl">
-            {/* Badge */}
             <div className="badge-outline-neon mb-8 animate-fade-in">
               <Zap className="h-4 w-4" />
               Datadriven fotbollsrekrytering
             </div>
             
-            {/* Main Headline */}
             <h1 className="headline-hero text-white mb-6 animate-slide-up">
               Visa vad du kan
               <br />
               <span className="text-gradient-neon">– inte vem du känner</span>
             </h1>
             
-            {/* Subheadline */}
             <p className="subheadline max-w-2xl mb-4 animate-slide-up stagger-1">
               Data. Highlights. Direktkontakt.
             </p>
             <p className="text-white/50 text-lg max-w-xl mb-10 animate-slide-up stagger-2">
-              Koppla samman din prestation med klubbar som söker talang. Utan mellanhänder.
+              Koppla samman din prestation med klubbar som söker talang. Boka professionell personal. Utan mellanhänder.
             </p>
             
-            {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row flex-wrap gap-4 animate-slide-up stagger-3">
               <Link to="/register?role=player">
                 <Button variant="neon" size="xl" className="btn-glow w-full sm:w-auto group">
@@ -135,8 +182,7 @@ const Index = () => {
               </Link>
             </div>
             
-            {/* Trust indicators */}
-            <div className="flex items-center gap-6 mt-12 text-white/40 text-sm animate-fade-in stagger-4">
+            <div className="flex flex-wrap items-center gap-6 mt-12 text-white/40 text-sm animate-fade-in stagger-4">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-neon" />
                 Gratis att börja
@@ -154,10 +200,24 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Feature Highlights - Clean Grid */}
+      {/* Stats Bar */}
+      <section className="py-12 bg-foreground">
+        <div className="container">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {stats.map((stat, i) => (
+              <div key={i} className="text-center">
+                <div className="font-headline text-3xl md:text-4xl font-bold text-neon mb-1">{stat.value}</div>
+                <div className="text-sm text-white/50 uppercase tracking-wider">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Feature Highlights */}
       <section className="py-24 lg:py-32 bg-background">
         <div className="container">
-          <div className="max-w-2xl mb-16">
+          <div className="text-center max-w-2xl mx-auto mb-16">
             <span className="badge-outline-neon mb-6">
               <Target className="h-4 w-4" />
               Plattformen
@@ -166,11 +226,11 @@ const Index = () => {
               Allt för modern rekrytering
             </h2>
             <p className="mt-4 text-muted-foreground text-lg">
-              En komplett plattform för datadriven fotbollsrekrytering
+              En komplett plattform för spelare, klubbar och professionell personal.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, index) => (
               <div 
                 key={index} 
@@ -191,16 +251,14 @@ const Index = () => {
         </div>
       </section>
 
-      {/* TikTok-style Video Preview Section */}
+      {/* TikTok-style Video Preview */}
       <section className="py-24 lg:py-32 bg-gradient-hero relative overflow-hidden">
-        {/* Background glow */}
         <div className="absolute inset-0 opacity-30">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-neon/10 rounded-full blur-[120px]" />
         </div>
         
         <div className="container relative z-10">
           <div className="flex flex-col lg:flex-row items-center gap-16">
-            {/* Text Content */}
             <div className="lg:w-1/2">
               <span className="badge-neon mb-6">
                 <Video className="h-4 w-4" />
@@ -214,22 +272,19 @@ const Index = () => {
                 kraftfulla highlights. Prestation i fokus.
               </p>
               
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-wrap gap-4 mb-10">
                 <div className="flex items-center gap-2 text-white/40 text-sm">
-                  <Heart className="h-4 w-4" />
-                  Like
+                  <Heart className="h-4 w-4" /> Like
                 </div>
                 <div className="flex items-center gap-2 text-white/40 text-sm">
-                  <MessageSquare className="h-4 w-4" />
-                  Kommentera
+                  <MessageSquare className="h-4 w-4" /> Kommentera
                 </div>
                 <div className="flex items-center gap-2 text-white/40 text-sm">
-                  <Bookmark className="h-4 w-4" />
-                  Spara
+                  <Bookmark className="h-4 w-4" /> Spara
                 </div>
               </div>
               
-              <Link to="/highlights" className="inline-block mt-10">
+              <Link to="/highlights">
                 <Button variant="neon" size="lg" className="btn-glow group">
                   Utforska highlights
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -237,10 +292,8 @@ const Index = () => {
               </Link>
             </div>
             
-            {/* Phone Mockups - TikTok Style */}
             <div className="lg:w-1/2 flex justify-center">
               <div className="relative">
-                {/* Background phone */}
                 <div className="video-card w-48 h-80 -rotate-6 translate-x-8 opacity-60">
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
                   <div className="absolute bottom-4 left-4 right-4">
@@ -249,7 +302,6 @@ const Index = () => {
                   </div>
                 </div>
                 
-                {/* Main phone */}
                 <div className="video-card w-56 h-96 relative z-10 rotate-3">
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center animate-glow-pulse">
@@ -257,28 +309,23 @@ const Index = () => {
                     </div>
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/90" />
-                  
-                  {/* Player info */}
                   <div className="absolute bottom-6 left-4 right-14">
                     <p className="text-white font-semibold text-lg">Erik L.</p>
                     <p className="text-white/60 text-sm">Visa profil →</p>
                   </div>
-                  
-                  {/* Action buttons */}
                   <div className="absolute bottom-6 right-4 flex flex-col gap-4">
-                    <button className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-neon/20 transition-colors">
+                    <button className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
                       <Heart className="h-5 w-5 text-white" />
                     </button>
-                    <button className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-neon/20 transition-colors">
+                    <button className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
                       <MessageSquare className="h-5 w-5 text-white" />
                     </button>
-                    <button className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-neon/20 transition-colors">
+                    <button className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
                       <Bookmark className="h-5 w-5 text-white" />
                     </button>
                   </div>
                 </div>
                 
-                {/* Front phone */}
                 <div className="video-card w-48 h-80 absolute -bottom-4 -right-12 rotate-12 opacity-60">
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
                   <div className="absolute bottom-4 left-4 right-4">
@@ -445,54 +492,100 @@ const Index = () => {
       {/* For Professionals */}
       <section className="py-24 lg:py-32 bg-muted/30">
         <div className="container">
-          <div className="max-w-2xl mb-16">
-            <span className="badge-neon mb-6">
-              <Users className="h-4 w-4" />
-              För professionell personal
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <span className="badge-neon mb-6">
+                <Users className="h-4 w-4" />
+                För professionell personal
+              </span>
+              <h2 className="headline-section text-foreground mb-6">
+                Erbjud dina tjänster till spelare
+              </h2>
+              <p className="text-muted-foreground text-lg leading-relaxed mb-8">
+                Registrera dig som tränare, fysioterapeut, analytiker eller annan personal – 
+                skapa din profil, publicera lediga tider och bli bokningsbar direkt.
+              </p>
+
+              <ul className="space-y-4 mb-10">
+                {staffBenefits.map((benefit, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-neon/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <CheckCircle2 className="h-4 w-4 text-neon" />
+                    </div>
+                    <span className="text-foreground">{benefit}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Link to="/register?category=staff">
+                <Button variant="default" size="lg" className="group">
+                  Registrera dig som personal
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+            </div>
+
+            {/* Staff roles grid */}
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { id: "coach", label: "Tränare", icon: Users },
+                { id: "physiotherapist", label: "Fysioterapeut", icon: Stethoscope },
+                { id: "analyst", label: "Analytiker", icon: BarChart3 },
+                { id: "scout", label: "Scout", icon: Search },
+                { id: "nutritionist", label: "Nutritionist", icon: Apple },
+                { id: "mental_coach", label: "Mentalcoach", icon: Brain },
+              ].map((role) => (
+                <Link
+                  key={role.id}
+                  to={`/register?role=${role.id}`}
+                  className="card-premium p-5 group block text-center"
+                >
+                  <div className="icon-glow mb-3 mx-auto group-hover:scale-110 transition-transform">
+                    <role.icon className="h-5 w-5 text-foreground group-hover:text-neon transition-colors" />
+                  </div>
+                  <h3 className="font-display text-sm font-semibold text-foreground">
+                    {role.label}
+                  </h3>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="py-24 lg:py-32 bg-background">
+        <div className="container">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <span className="badge-outline-neon mb-6">
+              <Globe className="h-4 w-4" />
+              Så funkar det
             </span>
             <h2 className="headline-section text-foreground">
-              Erbjud dina tjänster till spelare
+              Kom igång på 3 steg
             </h2>
-            <p className="mt-4 text-muted-foreground text-lg">
-              Registrera dig som tränare, fysioterapeut, analytiker eller annan professionell personal – och bli bokningsbar direkt.
-            </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             {[
-              { id: "coach", label: "Tränare", description: "Erbjud träning och coachning", icon: Users },
-              { id: "physiotherapist", label: "Fysioterapeut", description: "Rehabilitering och skadeförebyggande", icon: Stethoscope },
-              { id: "analyst", label: "Analytiker", description: "Matchanalys och spelarstatistik", icon: BarChart3 },
-              { id: "scout", label: "Scout", description: "Scouting och talangidentifiering", icon: Search },
-              { id: "nutritionist", label: "Nutritionist", description: "Kostplanering och näringslära", icon: Apple },
-              { id: "mental_coach", label: "Mentalcoach", description: "Mental träning och prestation", icon: Brain },
-            ].map((role) => (
-              <Link
-                key={role.id}
-                to={`/register?role=${role.id}`}
-                className="card-premium p-6 group block"
-              >
-                <div className="icon-glow mb-5 group-hover:scale-110 transition-transform">
-                  <role.icon className="h-6 w-6 text-foreground group-hover:text-neon transition-colors" />
+              { step: "01", title: "Skapa profil", desc: "Registrera dig som spelare, klubb eller personal. Det tar under en minut." },
+              { step: "02", title: "Fyll i din data", desc: "Lägg till statistik, highlights, tillgängliga tider – beroende på din roll." },
+              { step: "03", title: "Bli hittad", desc: "Klubbar söker, spelare bokar, kontakter skapas. Direkt och utan mellanhänder." },
+            ].map((item, i) => (
+              <div key={i} className="text-center">
+                <div className="w-16 h-16 rounded-2xl bg-neon/10 flex items-center justify-center mx-auto mb-6">
+                  <span className="font-headline text-2xl font-bold text-neon">{item.step}</span>
                 </div>
-                <h3 className="font-display text-lg font-semibold text-foreground mb-2">
-                  {role.label}
-                </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                  {role.description}
-                </p>
-                <span className="text-sm font-medium text-neon flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  Registrera dig <ArrowRight className="h-4 w-4" />
-                </span>
-              </Link>
+                <h3 className="font-display text-xl font-semibold text-foreground mb-3">{item.title}</h3>
+                <p className="text-muted-foreground leading-relaxed">{item.desc}</p>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Trust Section - Final CTA */}
+      {/* Final CTA */}
       <section className="py-24 lg:py-32 bg-gradient-hero relative overflow-hidden">
-        {/* Background effects */}
         <div className="absolute inset-0">
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-neon/5 rounded-full blur-[100px]" />
           <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-electric/5 rounded-full blur-[100px]" />
@@ -513,12 +606,19 @@ const Index = () => {
               talang och möjlighet.
             </p>
             
-            <Link to="/register">
-              <Button variant="neon" size="xl" className="btn-glow group">
-                Kom igång gratis
-                <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </Button>
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/register">
+                <Button variant="neon" size="xl" className="btn-glow group">
+                  Kom igång gratis
+                  <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+              <Link to="/login">
+                <Button variant="heroOutline" size="xl" className="group">
+                  Logga in
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
