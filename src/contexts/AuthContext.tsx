@@ -32,7 +32,6 @@ async function ensureProfileAndRole(user: User) {
       location: meta?.location || null,
     });
   }
-  }
 
   if (role) {
     const { data: existingRole } = await supabase
