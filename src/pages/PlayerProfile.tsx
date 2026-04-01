@@ -8,12 +8,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   MapPin, Calendar, Footprints, FileText, Play, MessageCircle,
-  ArrowLeft, Users, Bookmark, BookmarkCheck, Shield, BarChart3
+  ArrowLeft, Users, Bookmark, BookmarkCheck, BarChart3, Camera
 } from "lucide-react";
 import ConnectButton from "@/components/ConnectButton";
 import { useConnectionCount } from "@/hooks/useConnections";
 import { useAuth } from "@/contexts/AuthContext";
-import AvatarUpload from "@/components/AvatarUpload";
 
 const statusLabels: Record<string, { label: string; color: string }> = {
   free_agent: { label: "Kontraktslös", color: "bg-neon/10 text-neon border-neon/20" },
