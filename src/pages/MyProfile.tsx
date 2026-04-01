@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Save, User } from "lucide-react";
+import AvatarUpload from "@/components/AvatarUpload";
 
 const positions = [
   "Målvakt", "Högerback", "Vänsterback", "Mittback", "Defensiv mittfältare",
@@ -35,6 +36,7 @@ const MyProfile = () => {
   const [region, setRegion] = useState("");
   const [bio, setBio] = useState("");
   const [profileName, setProfileName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -44,10 +46,13 @@ const MyProfile = () => {
       // Get profile name
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name")
+        .select("full_name, avatar_url")
         .eq("user_id", user.id)
         .maybeSingle();
-      if (profile) setProfileName(profile.full_name);
+      if (profile) {
+        setProfileName(profile.full_name);
+        setAvatarUrl(profile.avatar_url);
+      }
 
       // Get player profile
       const { data } = await supabase
@@ -121,11 +126,14 @@ const MyProfile = () => {
     <Layout>
       <div className="container py-8 max-w-2xl">
         <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 rounded-xl bg-neon flex items-center justify-center">
-              <User className="h-6 w-6 text-neon-foreground" />
-            </div>
-            <div>
+          <div className="flex flex-col items-center gap-4 mb-8">
+            <AvatarUpload
+              userId={user!.id}
+              currentUrl={avatarUrl}
+              onUploaded={setAvatarUrl}
+              name={profileName}
+            />
+            <div className="text-center">
               <h1 className="font-display text-2xl font-bold text-foreground">Min profil</h1>
               <p className="text-muted-foreground text-sm">
                 {profileName ? `Hej ${profileName}! ` : ""}Fyll i din spelarinformation
