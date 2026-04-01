@@ -199,6 +199,7 @@ export type Database = {
         Row: {
           age: number | null
           bio: string | null
+          contract_status: string | null
           created_at: string
           id: string
           position: string | null
@@ -206,10 +207,12 @@ export type Database = {
           region: string | null
           updated_at: string
           user_id: string
+          visibility: string | null
         }
         Insert: {
           age?: number | null
           bio?: string | null
+          contract_status?: string | null
           created_at?: string
           id?: string
           position?: string | null
@@ -217,10 +220,12 @@ export type Database = {
           region?: string | null
           updated_at?: string
           user_id: string
+          visibility?: string | null
         }
         Update: {
           age?: number | null
           bio?: string | null
+          contract_status?: string | null
           created_at?: string
           id?: string
           position?: string | null
@@ -228,6 +233,7 @@ export type Database = {
           region?: string | null
           updated_at?: string
           user_id?: string
+          visibility?: string | null
         }
         Relationships: []
       }
