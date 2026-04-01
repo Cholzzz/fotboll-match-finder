@@ -5,121 +5,85 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Search, 
-  Filter, 
-  Grid3X3, 
-  List, 
-  Bookmark, 
-  BookmarkCheck,
-  MapPin,
-  Calendar,
-  TrendingUp,
-  Eye,
-  StickyNote,
-  X
+import {
+  Search, Grid3X3, List, Bookmark, BookmarkCheck,
+  MapPin, Eye, X, Calendar, Users
 } from "lucide-react";
-
-const mockPlayers = [
-  { 
-    id: "1", 
-    name: "Erik Lindqvist", 
-    position: "CM", 
-    age: 23, 
-    region: "Stockholm",
-    contractStatus: "Kontraktslös",
-    stats: { matches: 28, goals: 7, assists: 12 },
-    saved: true
-  },
-  { 
-    id: "2", 
-    name: "Marcus Andersson", 
-    position: "ST", 
-    age: 21, 
-    region: "Göteborg",
-    contractStatus: "Kontraktslös",
-    stats: { matches: 24, goals: 15, assists: 4 },
-    saved: false
-  },
-  { 
-    id: "3", 
-    name: "Johan Svensson", 
-    position: "CB", 
-    age: 24, 
-    region: "Malmö",
-    contractStatus: "Utgår 2024",
-    stats: { matches: 30, goals: 2, assists: 1 },
-    saved: true
-  },
-  { 
-    id: "4", 
-    name: "Oscar Nilsson", 
-    position: "LW", 
-    age: 19, 
-    region: "Stockholm",
-    contractStatus: "Kontraktslös",
-    stats: { matches: 18, goals: 8, assists: 6 },
-    saved: false
-  },
-  { 
-    id: "5", 
-    name: "Alexander Berg", 
-    position: "RB", 
-    age: 22, 
-    region: "Uppsala",
-    contractStatus: "Kontraktslös",
-    stats: { matches: 26, goals: 1, assists: 9 },
-    saved: false
-  },
-  { 
-    id: "6", 
-    name: "Viktor Holm", 
-    position: "GK", 
-    age: 25, 
-    region: "Stockholm",
-    contractStatus: "Utgår 2024",
-    stats: { matches: 28, goals: 0, assists: 0 },
-    saved: false
-  },
-];
-
-const watchlistNotes = [
-  { playerId: "1", note: "Bra speluppfattning, passar vår spelidé. Boka in provträning efter säsongen." },
-  { playerId: "3", note: "Stabil försvarare, behöver se mer video." },
-];
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const ClubDashboard = () => {
+  const { user } = useAuth();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [players, setPlayers] = useState(mockPlayers);
   const [searchQuery, setSearchQuery] = useState("");
-  const [positionFilter, setPositionFilter] = useState<string>("all");
-  const [ageFilter, setAgeFilter] = useState<string>("all");
-  const [regionFilter, setRegionFilter] = useState<string>("all");
+  const [positionFilter, setPositionFilter] = useState("all");
+  const [ageFilter, setAgeFilter] = useState("all");
+  const [regionFilter, setRegionFilter] = useState("all");
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
 
-  const toggleSave = (playerId: string) => {
-    setPlayers(players.map(p => 
-      p.id === playerId ? { ...p, saved: !p.saved } : p
-    ));
+  // Fetch real players from DB
+  const { data: players = [], isLoading } = useQuery({
+    queryKey: ["club-dashboard-players"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("player_profiles")
+        .select("*, profiles!inner(full_name, avatar_url, user_id)");
+      if (error) throw error;
+      return (data || []).map((p: any) => ({
+        id: p.user_id,
+        name: p.profiles.full_name,
+        position: p.position || "Okänd",
+        age: p.age || 0,
+        region: p.region || "Okänd",
+        avatarUrl: p.profiles.avatar_url,
+      }));
+    },
+  });
+
+  // Fetch club's trials
+  const { data: myTrials = [] } = useQuery({
+    queryKey: ["club-trials", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data } = await supabase
+        .from("trials")
+        .select("*")
+        .eq("club_user_id", user.id)
+        .order("trial_date", { ascending: true });
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  const toggleSave = (id: string) => {
+    setSavedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
   };
 
-  const filteredPlayers = players.filter(player => {
-    if (searchQuery && !player.name.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false;
-    }
-    if (positionFilter !== "all" && player.position !== positionFilter) {
-      return false;
-    }
+  const filteredPlayers = players.filter((player: any) => {
+    if (searchQuery && !player.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (positionFilter !== "all" && player.position !== positionFilter) return false;
     if (ageFilter !== "all") {
       const [min, max] = ageFilter.split("-").map(Number);
       if (player.age < min || player.age > max) return false;
     }
-    if (regionFilter !== "all" && player.region !== regionFilter) {
-      return false;
-    }
+    if (regionFilter !== "all" && player.region !== regionFilter) return false;
     return true;
   });
 
-  const savedPlayers = players.filter(p => p.saved);
+  const savedPlayers = players.filter((p: any) => savedIds.has(p.id));
+
+  // Get unique positions and regions for filter dropdowns
+  const uniquePositions = [...new Set(players.map((p: any) => p.position).filter((p: string) => p !== "Okänd"))];
+  const uniqueRegions = [...new Set(players.map((p: any) => p.region).filter((r: string) => r !== "Okänd"))];
+
+  const initials = (name: string) => name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
 
   return (
     <Layout>
@@ -129,86 +93,86 @@ const ClubDashboard = () => {
           <p className="text-muted-foreground mt-2">Sök och hantera spelare för din klubb</p>
         </div>
 
+        {/* Quick stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="rounded-2xl border border-border bg-card p-4 text-center">
+            <p className="text-2xl font-bold text-foreground">{players.length}</p>
+            <p className="text-xs text-muted-foreground">Registrerade spelare</p>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-4 text-center">
+            <p className="text-2xl font-bold text-foreground">{savedPlayers.length}</p>
+            <p className="text-xs text-muted-foreground">Bevakade</p>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-4 text-center">
+            <p className="text-2xl font-bold text-foreground">{myTrials.length}</p>
+            <p className="text-xs text-muted-foreground">Provträningar</p>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-4 text-center">
+            <p className="text-2xl font-bold text-foreground">{uniqueRegions.length}</p>
+            <p className="text-xs text-muted-foreground">Regioner</p>
+          </div>
+        </div>
+
         <Tabs defaultValue="search" className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="search" className="gap-2">
-              <Search className="h-4 w-4" />
-              Sök spelare
+              <Search className="h-4 w-4" /> Sök spelare
             </TabsTrigger>
             <TabsTrigger value="watchlist" className="gap-2">
-              <Bookmark className="h-4 w-4" />
-              Bevakningslista
+              <Bookmark className="h-4 w-4" /> Bevakningslista
               {savedPlayers.length > 0 && (
                 <span className="ml-1 px-1.5 py-0.5 rounded-full bg-neon text-neon-foreground text-xs font-medium">
                   {savedPlayers.length}
                 </span>
               )}
             </TabsTrigger>
+            <TabsTrigger value="trials" className="gap-2">
+              <Calendar className="h-4 w-4" /> Provträningar
+            </TabsTrigger>
           </TabsList>
 
-          {/* Search Tab */}
           <TabsContent value="search">
             {/* Filters */}
             <div className="rounded-2xl border border-border bg-card p-4 mb-6">
               <div className="flex flex-col lg:flex-row gap-4">
-                <div className="flex-1">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Sök spelare..."
-                      className="pl-10"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Sök spelare..."
+                    className="pl-10"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
                 </div>
-                
                 <div className="flex flex-wrap gap-3">
                   <Select value={positionFilter} onValueChange={setPositionFilter}>
-                    <SelectTrigger className="w-[140px]">
-                      <SelectValue placeholder="Position" />
-                    </SelectTrigger>
+                    <SelectTrigger className="w-[160px]"><SelectValue placeholder="Position" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Alla positioner</SelectItem>
-                      <SelectItem value="GK">Målvakt</SelectItem>
-                      <SelectItem value="CB">Mittback</SelectItem>
-                      <SelectItem value="RB">Högerback</SelectItem>
-                      <SelectItem value="LB">Vänsterback</SelectItem>
-                      <SelectItem value="DM">Defensiv mitt</SelectItem>
-                      <SelectItem value="CM">Central mitt</SelectItem>
-                      <SelectItem value="AM">Offensiv mitt</SelectItem>
-                      <SelectItem value="RW">Högerving</SelectItem>
-                      <SelectItem value="LW">Vänsterving</SelectItem>
-                      <SelectItem value="ST">Anfallare</SelectItem>
+                      {uniquePositions.map((p) => (
+                        <SelectItem key={p} value={p}>{p}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
-
                   <Select value={ageFilter} onValueChange={setAgeFilter}>
-                    <SelectTrigger className="w-[130px]">
-                      <SelectValue placeholder="Ålder" />
-                    </SelectTrigger>
+                    <SelectTrigger className="w-[130px]"><SelectValue placeholder="Ålder" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Alla åldrar</SelectItem>
                       <SelectItem value="15-18">15-18 år</SelectItem>
                       <SelectItem value="18-21">18-21 år</SelectItem>
                       <SelectItem value="21-25">21-25 år</SelectItem>
-                      <SelectItem value="25-28">25-28 år</SelectItem>
+                      <SelectItem value="25-30">25-30 år</SelectItem>
                     </SelectContent>
                   </Select>
-
                   <Select value={regionFilter} onValueChange={setRegionFilter}>
-                    <SelectTrigger className="w-[140px]">
-                      <SelectValue placeholder="Region" />
-                    </SelectTrigger>
+                    <SelectTrigger className="w-[140px]"><SelectValue placeholder="Region" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Alla regioner</SelectItem>
-                      <SelectItem value="Stockholm">Stockholm</SelectItem>
-                      <SelectItem value="Göteborg">Göteborg</SelectItem>
-                      <SelectItem value="Malmö">Malmö</SelectItem>
-                      <SelectItem value="Uppsala">Uppsala</SelectItem>
+                      {uniqueRegions.map((r) => (
+                        <SelectItem key={r} value={r}>{r}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
-
                   <div className="flex border border-border rounded-lg overflow-hidden">
                     <button
                       onClick={() => setViewMode("grid")}
@@ -227,22 +191,24 @@ const ClubDashboard = () => {
               </div>
             </div>
 
-            {/* Results */}
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-sm text-muted-foreground">{filteredPlayers.length} spelare hittade</p>
-            </div>
+            <p className="text-sm text-muted-foreground mb-4">{filteredPlayers.length} spelare hittade</p>
 
-            {viewMode === "grid" ? (
+            {isLoading ? (
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredPlayers.map((player) => (
+                {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-52 rounded-2xl" />)}
+              </div>
+            ) : viewMode === "grid" ? (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredPlayers.map((player: any) => (
                   <div key={player.id} className="rounded-2xl border border-border bg-card p-5 hover:border-foreground/20 transition-colors">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl bg-foreground flex items-center justify-center">
-                          <span className="font-display text-lg font-bold text-background">
-                            {player.name.split(" ").map(n => n[0]).join("")}
-                          </span>
-                        </div>
+                        <Avatar className="h-12 w-12 rounded-xl">
+                          <AvatarImage src={player.avatarUrl || undefined} />
+                          <AvatarFallback className="rounded-xl bg-foreground text-background font-display text-lg">
+                            {initials(player.name)}
+                          </AvatarFallback>
+                        </Avatar>
                         <div>
                           <h3 className="font-semibold text-foreground">{player.name}</h3>
                           <p className="text-sm text-muted-foreground">{player.position} • {player.age} år</p>
@@ -250,37 +216,17 @@ const ClubDashboard = () => {
                       </div>
                       <button
                         onClick={() => toggleSave(player.id)}
-                        className={`p-2 rounded-lg transition-colors ${player.saved ? "text-neon" : "text-muted-foreground hover:text-foreground"}`}
+                        className={`p-2 rounded-lg transition-colors ${savedIds.has(player.id) ? "text-neon" : "text-muted-foreground hover:text-foreground"}`}
                       >
-                        {player.saved ? <BookmarkCheck className="h-5 w-5" /> : <Bookmark className="h-5 w-5" />}
+                        {savedIds.has(player.id) ? <BookmarkCheck className="h-5 w-5" /> : <Bookmark className="h-5 w-5" />}
                       </button>
                     </div>
-
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-                      <MapPin className="h-4 w-4" />
-                      {player.region}
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                      <MapPin className="h-4 w-4" /> {player.region}
                     </div>
-
-                    <div className="flex gap-2 mb-4">
-                      <span className="px-2 py-1 rounded bg-muted text-xs font-medium">
-                        {player.stats.matches} matcher
-                      </span>
-                      <span className="px-2 py-1 rounded bg-muted text-xs font-medium">
-                        {player.stats.goals} mål
-                      </span>
-                      <span className="px-2 py-1 rounded bg-muted text-xs font-medium">
-                        {player.stats.assists} assist
-                      </span>
-                    </div>
-
-                    <span className="inline-flex px-2 py-1 rounded bg-neon/10 text-neon text-xs font-medium mb-4">
-                      {player.contractStatus}
-                    </span>
-
                     <Link to={`/player/${player.id}`}>
                       <Button variant="outline" className="w-full">
-                        <Eye className="mr-2 h-4 w-4" />
-                        Visa profil
+                        <Eye className="mr-2 h-4 w-4" /> Visa profil
                       </Button>
                     </Link>
                   </div>
@@ -290,26 +236,19 @@ const ClubDashboard = () => {
               <div className="rounded-2xl border border-border bg-card overflow-hidden">
                 <table className="data-table">
                   <thead>
-                    <tr>
-                      <th>Spelare</th>
-                      <th>Position</th>
-                      <th>Ålder</th>
-                      <th>Region</th>
-                      <th>Statistik</th>
-                      <th>Status</th>
-                      <th></th>
-                    </tr>
+                    <tr><th>Spelare</th><th>Position</th><th>Ålder</th><th>Region</th><th></th></tr>
                   </thead>
                   <tbody>
-                    {filteredPlayers.map((player) => (
+                    {filteredPlayers.map((player: any) => (
                       <tr key={player.id}>
                         <td>
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-foreground flex items-center justify-center">
-                              <span className="font-display text-xs font-bold text-background">
-                                {player.name.split(" ").map(n => n[0]).join("")}
-                              </span>
-                            </div>
+                            <Avatar className="h-8 w-8 rounded-lg">
+                              <AvatarImage src={player.avatarUrl || undefined} />
+                              <AvatarFallback className="rounded-lg bg-foreground text-background text-xs">
+                                {initials(player.name)}
+                              </AvatarFallback>
+                            </Avatar>
                             <span className="font-medium text-foreground">{player.name}</span>
                           </div>
                         </td>
@@ -317,27 +256,15 @@ const ClubDashboard = () => {
                         <td>{player.age} år</td>
                         <td>{player.region}</td>
                         <td>
-                          <span className="text-xs text-muted-foreground">
-                            {player.stats.goals}M, {player.stats.assists}A
-                          </span>
-                        </td>
-                        <td>
-                          <span className="px-2 py-1 rounded bg-neon/10 text-neon text-xs font-medium">
-                            {player.contractStatus}
-                          </span>
-                        </td>
-                        <td>
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => toggleSave(player.id)}
-                              className={`p-1.5 rounded transition-colors ${player.saved ? "text-neon" : "text-muted-foreground hover:text-foreground"}`}
+                              className={`p-1.5 rounded transition-colors ${savedIds.has(player.id) ? "text-neon" : "text-muted-foreground hover:text-foreground"}`}
                             >
-                              {player.saved ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
+                              {savedIds.has(player.id) ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
                             </button>
                             <Link to={`/player/${player.id}`}>
-                              <Button variant="ghost" size="sm">
-                                Visa
-                              </Button>
+                              <Button variant="ghost" size="sm">Visa</Button>
                             </Link>
                           </div>
                         </td>
@@ -349,7 +276,6 @@ const ClubDashboard = () => {
             )}
           </TabsContent>
 
-          {/* Watchlist Tab */}
           <TabsContent value="watchlist">
             {savedPlayers.length === 0 ? (
               <div className="text-center py-16">
@@ -357,69 +283,66 @@ const ClubDashboard = () => {
                 <h3 className="font-display text-lg font-semibold text-foreground mb-2">
                   Din bevakningslista är tom
                 </h3>
-                <p className="text-muted-foreground mb-6">
-                  Spara spelare du vill följa upp för att se dem här.
-                </p>
-                <Button variant="outline" onClick={() => {}}>
-                  Sök spelare
-                </Button>
+                <p className="text-muted-foreground">Spara spelare du vill följa upp.</p>
               </div>
             ) : (
               <div className="space-y-4">
-                {savedPlayers.map((player) => {
-                  const note = watchlistNotes.find(n => n.playerId === player.id);
-                  return (
-                    <div key={player.id} className="rounded-2xl border border-border bg-card p-5">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="w-14 h-14 rounded-xl bg-foreground flex items-center justify-center">
-                            <span className="font-display text-xl font-bold text-background">
-                              {player.name.split(" ").map(n => n[0]).join("")}
-                            </span>
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-foreground text-lg">{player.name}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              {player.position} • {player.age} år • {player.region}
-                            </p>
-                            <div className="flex gap-3 mt-2">
-                              <span className="text-sm text-muted-foreground">
-                                <strong className="text-foreground">{player.stats.matches}</strong> matcher
-                              </span>
-                              <span className="text-sm text-muted-foreground">
-                                <strong className="text-foreground">{player.stats.goals}</strong> mål
-                              </span>
-                              <span className="text-sm text-muted-foreground">
-                                <strong className="text-foreground">{player.stats.assists}</strong> assist
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <Link to={`/player/${player.id}`}>
-                            <Button variant="outline" size="sm">
-                              Visa profil
-                            </Button>
-                          </Link>
-                          <button
-                            onClick={() => toggleSave(player.id)}
-                            className="p-2 rounded-lg text-muted-foreground hover:text-destructive transition-colors"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
+                {savedPlayers.map((player: any) => (
+                  <div key={player.id} className="rounded-2xl border border-border bg-card p-5 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-14 w-14 rounded-xl">
+                        <AvatarImage src={player.avatarUrl || undefined} />
+                        <AvatarFallback className="rounded-xl bg-foreground text-background font-display text-xl">
+                          {initials(player.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="font-semibold text-foreground text-lg">{player.name}</h3>
+                        <p className="text-sm text-muted-foreground">{player.position} • {player.age} år • {player.region}</p>
                       </div>
-                      
-                      {note && (
-                        <div className="mt-4 p-3 rounded-lg bg-muted/50 flex items-start gap-2">
-                          <StickyNote className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-                          <p className="text-sm text-muted-foreground">{note.note}</p>
-                        </div>
-                      )}
                     </div>
-                  );
-                })}
+                    <div className="flex items-center gap-2">
+                      <Link to={`/player/${player.id}`}>
+                        <Button variant="outline" size="sm">Visa profil</Button>
+                      </Link>
+                      <button onClick={() => toggleSave(player.id)} className="p-2 rounded-lg text-muted-foreground hover:text-destructive">
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="trials">
+            {myTrials.length === 0 ? (
+              <div className="text-center py-16">
+                <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="font-display text-lg font-semibold text-foreground mb-2">Inga provträningar</h3>
+                <p className="text-muted-foreground mb-6">Skapa din första provträning under Provträningar-sidan.</p>
+                <Link to="/trials">
+                  <Button variant="neon">Gå till provträningar</Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 gap-4">
+                {myTrials.map((trial: any) => (
+                  <div key={trial.id} className="rounded-2xl border border-border bg-card p-5">
+                    <h3 className="font-display font-semibold text-foreground mb-2">
+                      {trial.title || "Provträning"}
+                    </h3>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                      <Calendar className="h-4 w-4" /> {trial.trial_date}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                      <MapPin className="h-4 w-4" /> {trial.location}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Users className="h-4 w-4" /> Max {trial.max_spots} platser
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </TabsContent>
