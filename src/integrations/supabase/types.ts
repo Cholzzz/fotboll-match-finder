@@ -237,6 +237,48 @@ export type Database = {
         }
         Relationships: []
       }
+      player_statistics: {
+        Row: {
+          assists: number
+          created_at: string
+          goals: number
+          id: string
+          matches: number
+          minutes_played: number
+          red_cards: number
+          season: string
+          updated_at: string
+          user_id: string
+          yellow_cards: number
+        }
+        Insert: {
+          assists?: number
+          created_at?: string
+          goals?: number
+          id?: string
+          matches?: number
+          minutes_played?: number
+          red_cards?: number
+          season?: string
+          updated_at?: string
+          user_id: string
+          yellow_cards?: number
+        }
+        Update: {
+          assists?: number
+          created_at?: string
+          goals?: number
+          id?: string
+          matches?: number
+          minutes_played?: number
+          red_cards?: number
+          season?: string
+          updated_at?: string
+          user_id?: string
+          yellow_cards?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -270,6 +312,27 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      saved_players: {
+        Row: {
+          club_user_id: string
+          created_at: string
+          id: string
+          player_user_id: string
+        }
+        Insert: {
+          club_user_id: string
+          created_at?: string
+          id?: string
+          player_user_id: string
+        }
+        Update: {
+          club_user_id?: string
+          created_at?: string
+          id?: string
+          player_user_id?: string
         }
         Relationships: []
       }
