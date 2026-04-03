@@ -53,8 +53,6 @@ const Register = () => {
   const [showStaffPicker, setShowStaffPicker] = useState(initialCategory === "staff");
   const [bio, setBio] = useState("");
   const [location, setLocation] = useState("");
-  const [availableStart, setAvailableStart] = useState("09:00");
-  const [availableEnd, setAvailableEnd] = useState("17:00");
   const staffRoles = roleOptions.filter(r => r.category === "staff");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,8 +72,6 @@ const Register = () => {
             ...(isStaffRole && {
               bio,
               location,
-              available_hours_start: availableStart,
-              available_hours_end: availableEnd,
             }),
           }
         }
@@ -316,30 +312,6 @@ const Register = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label>Tillgängliga tider</Label>
-                    <div className="flex items-center gap-3">
-                      <div className="relative flex-1">
-                        <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          type="time"
-                          value={availableStart}
-                          onChange={(e) => setAvailableStart(e.target.value)}
-                          className="pl-10"
-                        />
-                      </div>
-                      <span className="text-muted-foreground text-sm">till</span>
-                      <div className="relative flex-1">
-                        <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          type="time"
-                          value={availableEnd}
-                          onChange={(e) => setAvailableEnd(e.target.value)}
-                          className="pl-10"
-                        />
-                      </div>
-                    </div>
-                  </div>
                 </>
               )}
 
