@@ -24,6 +24,7 @@ import MyProfile from "./pages/MyProfile";
 import MyStaffProfile from "./pages/MyStaffProfile";
 import Connections from "./pages/Connections";
 import Rankings from "./pages/Rankings";
+import ActivityFeed from "./pages/ActivityFeed";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -56,6 +57,7 @@ const App = () => (
             <Route path="/my-staff-profile" element={<MyStaffProfile />} />
             <Route path="/connections" element={<Connections />} />
             <Route path="/rankings" element={<Rankings />} />
+            <Route path="/activity" element={<ActivityFeed />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
