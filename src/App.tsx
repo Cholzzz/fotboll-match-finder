@@ -19,8 +19,6 @@ import Trials from "./pages/Trials";
 import Messages from "./pages/Messages";
 import Highlights from "./pages/Highlights";
 import ClubDashboard from "./pages/ClubDashboard";
-import PerformanceTests from "./pages/PerformanceTests";
-import NutritionPlan from "./pages/NutritionPlan";
 import MyProfile from "./pages/MyProfile";
 import MyStaffProfile from "./pages/MyStaffProfile";
 import Connections from "./pages/Connections";
