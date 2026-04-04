@@ -24,6 +24,7 @@ import MyProfile from "./pages/MyProfile";
 import MyStaffProfile from "./pages/MyStaffProfile";
 import Connections from "./pages/Connections";
 import Rankings from "./pages/Rankings";
+import ActivityFeed from "./pages/ActivityFeed";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
