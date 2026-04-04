@@ -195,6 +195,39 @@ export type Database = {
           },
         ]
       }
+      player_performance: {
+        Row: {
+          created_at: string
+          id: string
+          test_name: string
+          test_type: string
+          unit: string
+          user_id: string
+          value: number
+          verified_by: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          test_name: string
+          test_type: string
+          unit: string
+          user_id: string
+          value: number
+          verified_by?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          test_name?: string
+          test_type?: string
+          unit?: string
+          user_id?: string
+          value?: number
+          verified_by?: string
+        }
+        Relationships: []
+      }
       player_profiles: {
         Row: {
           age: number | null
