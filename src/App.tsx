@@ -19,8 +19,6 @@ import Trials from "./pages/Trials";
 import Messages from "./pages/Messages";
 import Highlights from "./pages/Highlights";
 import ClubDashboard from "./pages/ClubDashboard";
-import PerformanceTests from "./pages/PerformanceTests";
-import NutritionPlan from "./pages/NutritionPlan";
 import MyProfile from "./pages/MyProfile";
 import MyStaffProfile from "./pages/MyStaffProfile";
 import Connections from "./pages/Connections";
@@ -53,8 +51,6 @@ const App = () => (
             <Route path="/messages" element={<Messages />} />
             <Route path="/highlights" element={<Highlights />} />
             <Route path="/dashboard" element={<ClubDashboard />} />
-            <Route path="/performance" element={<PerformanceTests />} />
-            <Route path="/nutrition" element={<NutritionPlan />} />
             <Route path="/my-profile" element={<MyProfile />} />
             <Route path="/my-staff-profile" element={<MyStaffProfile />} />
             <Route path="/connections" element={<Connections />} />

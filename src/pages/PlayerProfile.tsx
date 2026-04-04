@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   MapPin, Calendar, Footprints, FileText, Play, MessageCircle,
-  ArrowLeft, Users, Bookmark, BookmarkCheck, BarChart3, Camera
+  ArrowLeft, Users, Bookmark, BookmarkCheck, BarChart3, Camera, Dumbbell
 } from "lucide-react";
 import ConnectButton from "@/components/ConnectButton";
 import { useConnectionCount } from "@/hooks/useConnections";
@@ -66,6 +66,59 @@ const PlayerStats = ({ userId }: { userId: string }) => {
               <p className="text-2xl font-bold text-foreground">{s.minutes_played}</p>
               <p className="text-xs text-muted-foreground">Minuter</p>
             </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const testTypeLabels: Record<string, string> = {
+  sprint: "Sprint", endurance: "Uthållighet", jump: "Hopp", agility: "Snabbhet", strength: "Styrka",
+};
+
+const PlayerPerformance = ({ userId }: { userId: string }) => {
+  const { data: perfData = [], isLoading } = useQuery({
+    queryKey: ["player-performance-public", userId],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("player_performance")
+        .select("*")
+        .eq("user_id", userId)
+        .order("test_type", { ascending: true });
+      return data || [];
+    },
+  });
+
+  if (isLoading) return <Skeleton className="h-32 rounded-2xl" />;
+  if (perfData.length === 0) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-6 text-center">
+        <p className="text-muted-foreground">Inga fysiska testresultat tillagda ännu.</p>
+      </div>
+    );
+  }
+
+  const grouped = perfData.reduce((acc: any, p: any) => {
+    const type = p.test_type;
+    if (!acc[type]) acc[type] = [];
+    acc[type].push(p);
+    return acc;
+  }, {});
+
+  return (
+    <div className="space-y-4">
+      {Object.entries(grouped).map(([type, tests]: [string, any]) => (
+        <div key={type} className="rounded-2xl border border-border bg-card p-6">
+          <h3 className="font-display font-semibold text-foreground mb-4">{testTypeLabels[type] || type}</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {tests.map((t: any) => (
+              <div key={t.id} className="text-center p-3 rounded-xl bg-muted">
+                <p className="text-2xl font-bold text-foreground">{t.value}</p>
+                <p className="text-xs text-muted-foreground">{t.unit}</p>
+                <p className="text-sm font-medium text-foreground mt-1">{t.test_name}</p>
+              </div>
+            ))}
           </div>
         </div>
       ))}
@@ -279,6 +332,9 @@ const PlayerProfile = () => {
               <TabsTrigger value="statistics" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-6 py-3">
                 <BarChart3 className="h-4 w-4 mr-2" /> Statistik
               </TabsTrigger>
+              <TabsTrigger value="fysik" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-6 py-3">
+                <Dumbbell className="h-4 w-4 mr-2" /> Fysik
+              </TabsTrigger>
               <TabsTrigger value="about" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-6 py-3">
                 <FileText className="h-4 w-4 mr-2" /> Om
               </TabsTrigger>
@@ -289,6 +345,10 @@ const PlayerProfile = () => {
 
             <TabsContent value="statistics" className="mt-6">
               <PlayerStats userId={id!} />
+            </TabsContent>
+
+            <TabsContent value="fysik" className="mt-6">
+              <PlayerPerformance userId={id!} />
             </TabsContent>
 
             <TabsContent value="highlights" className="mt-6">
