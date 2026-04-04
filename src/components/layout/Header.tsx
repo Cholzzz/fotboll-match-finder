@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Video, Users, Calendar, Activity, Apple, ChevronDown, UserCheck, User, LogOut, MessageSquare, Link2, Trophy } from "lucide-react";
+import { Menu, X, Video, Users, Search as SearchIcon, Calendar, Activity, Apple, ChevronDown, UserCheck, User, LogOut, MessageSquare, Link2, Trophy, Building2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,9 +42,20 @@ const Header = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
+  const isPlayerRole = userRole === "player";
+  const isClubRole = userRole === "club";
+
   const mainNavLinks = [
     { path: "/highlights", label: "Highlights", icon: Video },
-    { path: "/dashboard", label: "Sök spelare", icon: Users },
+    // Players see "Sök klubbar", clubs see "Sök spelare", others see both
+    ...(isPlayerRole
+      ? [{ path: "/search-clubs", label: "Sök klubbar", icon: Building2 }]
+      : isClubRole
+        ? [{ path: "/search", label: "Sök spelare", icon: Users }]
+        : [
+            { path: "/search", label: "Sök spelare", icon: Users },
+            { path: "/search-clubs", label: "Sök klubbar", icon: Building2 },
+          ]),
     { path: "/search-staff", label: "Sök personal", icon: UserCheck },
     { path: "/trials", label: "Provträningar", icon: Calendar },
     { path: "/rankings", label: "Topplista", icon: Trophy },

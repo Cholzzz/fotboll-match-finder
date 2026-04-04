@@ -12,6 +12,7 @@ import ResetPassword from "./pages/ResetPassword";
 import PlayerProfile from "./pages/PlayerProfile";
 import ClubProfile from "./pages/ClubProfile";
 import SearchPlayers from "./pages/SearchPlayers";
+import SearchClubs from "./pages/SearchClubs";
 import SearchStaff from "./pages/SearchStaff";
 import StaffProfile from "./pages/StaffProfile";
 import Trials from "./pages/Trials";
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/player/:id" element={<PlayerProfile />} />
             <Route path="/club/:id" element={<ClubProfile />} />
             <Route path="/search" element={<SearchPlayers />} />
+            <Route path="/search-clubs" element={<SearchClubs />} />
             <Route path="/search-staff" element={<SearchStaff />} />
             <Route path="/staff/:id" element={<StaffProfile />} />
             <Route path="/trials" element={<Trials />} />
