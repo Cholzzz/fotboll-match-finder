@@ -50,6 +50,7 @@ const MyProfile = () => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [contractStatus, setContractStatus] = useState("free_agent");
   const [visibility, setVisibility] = useState("visible");
+  const [currentClub, setCurrentClub] = useState("");
 
   // Statistics state
   const [statSeason, setStatSeason] = useState("2024/2025");
