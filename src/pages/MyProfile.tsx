@@ -437,6 +437,10 @@ const MyProfile = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="fysik">
+            <PerformanceTab userId={user!.id} />
+          </TabsContent>
+
           <TabsContent value="dashboard">
             <div className="grid grid-cols-3 gap-4 mb-6">
               <div className="rounded-2xl border border-border bg-card p-4 text-center">
