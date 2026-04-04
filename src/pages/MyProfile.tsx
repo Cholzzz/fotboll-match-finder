@@ -176,6 +176,7 @@ const MyProfile = () => {
       bio: bio || null,
       contract_status: contractStatus,
       visibility,
+      current_club: currentClub || null,
     };
 
     const { data: existing } = await supabase
