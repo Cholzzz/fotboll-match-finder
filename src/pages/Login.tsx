@@ -38,11 +38,28 @@ const Login = () => {
           .eq('user_id', data.user.id)
           .single();
 
-        if (roles?.role === 'club') {
+        const role = roles?.role || '';
+
+        // Check if user has a saved profile already
+        let hasProfile = false;
+        if (role === 'player') {
+          const { data: pp } = await supabase.from('player_profiles').select('id').eq('user_id', data.user.id).maybeSingle();
+          hasProfile = !!pp;
+        } else if (role === 'club') {
+          const { data: pr } = await supabase.from('profiles').select('id').eq('user_id', data.user.id).maybeSingle();
+          hasProfile = !!pr;
+        } else if (['physiotherapist', 'coach', 'analyst', 'scout', 'nutritionist', 'mental_coach'].includes(role)) {
+          const { data: sp } = await supabase.from('staff_profiles').select('id').eq('user_id', data.user.id).maybeSingle();
+          hasProfile = !!sp;
+        }
+
+        if (hasProfile) {
+          navigate('/activity');
+        } else if (role === 'club') {
           navigate('/dashboard');
-        } else if (['physiotherapist', 'coach', 'analyst', 'scout', 'nutritionist', 'mental_coach'].includes(roles?.role || '')) {
+        } else if (['physiotherapist', 'coach', 'analyst', 'scout', 'nutritionist', 'mental_coach'].includes(role)) {
           navigate('/my-staff-profile');
-        } else if (roles?.role === 'player') {
+        } else if (role === 'player') {
           navigate('/my-profile');
         } else {
           navigate('/');
