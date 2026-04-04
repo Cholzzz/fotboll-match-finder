@@ -320,6 +320,11 @@ const PlayerProfile = () => {
                 <div className="lg:col-span-2">
                   <div className="rounded-2xl border border-border bg-card p-6">
                     <h3 className="font-display text-lg font-semibold text-foreground mb-4">Om mig</h3>
+                    {(player as any).current_club && (
+                      <p className="text-sm text-muted-foreground mb-3">
+                        <span className="font-medium text-foreground">Nuvarande klubb:</span> {(player as any).current_club}
+                      </p>
+                    )}
                     <p className="text-muted-foreground leading-relaxed">
                       {player.bio || player.profileBio || "Ingen bio har lagts till ännu."}
                     </p>

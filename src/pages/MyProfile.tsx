@@ -50,6 +50,7 @@ const MyProfile = () => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [contractStatus, setContractStatus] = useState("free_agent");
   const [visibility, setVisibility] = useState("visible");
+  const [currentClub, setCurrentClub] = useState("");
 
   // Statistics state
   const [statSeason, setStatSeason] = useState("2024/2025");
@@ -90,6 +91,7 @@ const MyProfile = () => {
         setBio(data.bio || "");
         setContractStatus((data as any).contract_status || "free_agent");
         setVisibility((data as any).visibility || "visible");
+        setCurrentClub((data as any).current_club || "");
       }
       setLoading(false);
     };
@@ -174,6 +176,7 @@ const MyProfile = () => {
       bio: bio || null,
       contract_status: contractStatus,
       visibility,
+      current_club: currentClub || null,
     };
 
     const { data: existing } = await supabase
@@ -359,6 +362,11 @@ const MyProfile = () => {
                     </span>
                   </div>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="currentClub">Nuvarande klubb</Label>
+                <Input id="currentClub" placeholder="T.ex. Hammarby IF" value={currentClub} onChange={e => setCurrentClub(e.target.value)} />
               </div>
 
               <div className="space-y-2">
