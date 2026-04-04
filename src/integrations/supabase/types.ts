@@ -201,6 +201,7 @@ export type Database = {
           bio: string | null
           contract_status: string | null
           created_at: string
+          current_club: string | null
           id: string
           position: string | null
           preferred_foot: string | null
@@ -214,6 +215,7 @@ export type Database = {
           bio?: string | null
           contract_status?: string | null
           created_at?: string
+          current_club?: string | null
           id?: string
           position?: string | null
           preferred_foot?: string | null
@@ -227,6 +229,7 @@ export type Database = {
           bio?: string | null
           contract_status?: string | null
           created_at?: string
+          current_club?: string | null
           id?: string
           position?: string | null
           preferred_foot?: string | null
