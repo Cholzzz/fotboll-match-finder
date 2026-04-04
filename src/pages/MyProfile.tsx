@@ -91,6 +91,7 @@ const MyProfile = () => {
         setBio(data.bio || "");
         setContractStatus((data as any).contract_status || "free_agent");
         setVisibility((data as any).visibility || "visible");
+        setCurrentClub((data as any).current_club || "");
       }
       setLoading(false);
     };
