@@ -347,6 +347,10 @@ const PlayerProfile = () => {
               <PlayerStats userId={id!} />
             </TabsContent>
 
+            <TabsContent value="fysik" className="mt-6">
+              <PlayerPerformance userId={id!} />
+            </TabsContent>
+
             <TabsContent value="highlights" className="mt-6">
               {player.highlights.length > 0 ? (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">

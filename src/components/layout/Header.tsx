@@ -62,10 +62,7 @@ const Header = () => {
     { path: "/activity", label: "Aktivitet", icon: Activity },
   ];
 
-  const toolsNavLinks = [
-    { path: "/performance", label: "Prestationsdata", icon: Activity },
-    { path: "/nutrition", label: "Nutritionsplan", icon: Apple },
-  ];
+  const toolsNavLinks: typeof mainNavLinks = [];
 
   const allNavLinks = [...mainNavLinks, ...toolsNavLinks];
 
