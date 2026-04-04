@@ -291,6 +291,9 @@ const MyProfile = () => {
             <TabsTrigger value="statistics" className="gap-2">
               <BarChart3 className="h-4 w-4" /> Statistik
             </TabsTrigger>
+            <TabsTrigger value="fysik" className="gap-2">
+              <Dumbbell className="h-4 w-4" /> Fysik
+            </TabsTrigger>
             <TabsTrigger value="dashboard" className="gap-2">
               <ClipboardList className="h-4 w-4" /> Dashboard
             </TabsTrigger>
