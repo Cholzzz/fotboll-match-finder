@@ -332,6 +332,9 @@ const PlayerProfile = () => {
               <TabsTrigger value="statistics" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-6 py-3">
                 <BarChart3 className="h-4 w-4 mr-2" /> Statistik
               </TabsTrigger>
+              <TabsTrigger value="fysik" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-6 py-3">
+                <Dumbbell className="h-4 w-4 mr-2" /> Fysik
+              </TabsTrigger>
               <TabsTrigger value="about" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-6 py-3">
                 <FileText className="h-4 w-4 mr-2" /> Om
               </TabsTrigger>
