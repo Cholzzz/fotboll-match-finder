@@ -100,34 +100,35 @@ const Header = () => {
             </Link>
           ))}
           
-          {/* Tools Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button 
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  toolsNavLinks.some(l => isActive(l.path))
-                    ? "text-neon bg-neon/10"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                }`}
-              >
-                Verktyg
-                <ChevronDown className="w-4 h-4" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              {toolsNavLinks.map((link) => (
-                <DropdownMenuItem key={link.path} asChild>
-                  <Link 
-                    to={link.path} 
-                    className={`flex items-center gap-3 ${isActive(link.path) ? 'text-neon' : ''}`}
-                  >
-                    <link.icon className="w-4 h-4" />
-                    {link.label}
-                  </Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {toolsNavLinks.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button 
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    toolsNavLinks.some(l => isActive(l.path))
+                      ? "text-neon bg-neon/10"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                >
+                  Verktyg
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                {toolsNavLinks.map((link) => (
+                  <DropdownMenuItem key={link.path} asChild>
+                    <Link 
+                      to={link.path} 
+                      className={`flex items-center gap-3 ${isActive(link.path) ? 'text-neon' : ''}`}
+                    >
+                      <link.icon className="w-4 h-4" />
+                      {link.label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </nav>
 
         {/* Desktop Actions */}
