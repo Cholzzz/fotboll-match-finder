@@ -62,6 +62,13 @@ const MyProfile = () => {
   const [statMinutes, setStatMinutes] = useState("0");
   const [savingStats, setSavingStats] = useState(false);
 
+  // Performance state
+  const [perfTestType, setPerfTestType] = useState("sprint");
+  const [perfTestName, setPerfTestName] = useState("");
+  const [perfValue, setPerfValue] = useState("");
+  const [perfUnit, setPerfUnit] = useState("");
+  const [savingPerf, setSavingPerf] = useState(false);
+
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate("/login"); return; }
