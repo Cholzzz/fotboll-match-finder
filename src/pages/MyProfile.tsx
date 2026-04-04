@@ -365,6 +365,11 @@ const MyProfile = () => {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="currentClub">Nuvarande klubb</Label>
+                <Input id="currentClub" placeholder="T.ex. Hammarby IF" value={currentClub} onChange={e => setCurrentClub(e.target.value)} />
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="bio">Om mig</Label>
                 <Textarea id="bio" placeholder="Berätta om dig själv som fotbollsspelare..." value={bio} onChange={e => setBio(e.target.value)} rows={4} />
               </div>
