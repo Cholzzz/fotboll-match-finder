@@ -35,6 +35,128 @@ const contractStatuses = [
   { value: "has_club", label: "Har klubb" },
 ];
 
+const testTypes = [
+  { value: "sprint", label: "Sprint", defaultUnit: "sek", tests: ["40m sprint", "20m sprint", "10m sprint"] },
+  { value: "endurance", label: "Uthållighet", defaultUnit: "nivå", tests: ["Yo-Yo IR1", "Yo-Yo IR2", "Cooper-test (m)"] },
+  { value: "jump", label: "Hopp", defaultUnit: "cm", tests: ["Vertikal hopp", "Längdhopp stående", "Counter-movement jump"] },
+  { value: "agility", label: "Snabbhet", defaultUnit: "sek", tests: ["T-test", "Illinois agility", "5-10-5 shuttle"] },
+  { value: "strength", label: "Styrka", defaultUnit: "kg", tests: ["Bänkpress 1RM", "Knäböj 1RM", "Marklyft 1RM"] },
+];
+
+const PerformanceTab = ({ userId }: { userId: string }) => {
+  const [testType, setTestType] = useState("sprint");
+  const [testName, setTestName] = useState("");
+  const [value, setValue] = useState("");
+  const [unit, setUnit] = useState("sek");
+  const [saving, setSaving] = useState(false);
+  const queryClient = useQueryClient();
+
+  const { data: perfData = [], isLoading } = useQuery({
+    queryKey: ["my-performance", userId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("player_performance" as any)
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+      return data || [];
+    },
+  });
+
+  const selectedType = testTypes.find(t => t.value === testType);
+
+  const handleAdd = async () => {
+    if (!testName || !value) return;
+    setSaving(true);
+    const { error } = await (supabase as any).from("player_performance").insert({
+      user_id: userId,
+      test_type: testType,
+      test_name: testName,
+      value: parseFloat(value),
+      unit: unit || selectedType?.defaultUnit || "",
+    });
+    if (error) {
+      toast({ title: "Fel", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Sparad!", description: "Testresultat tillagt." });
+      setValue("");
+      setTestName("");
+      queryClient.invalidateQueries({ queryKey: ["my-performance"] });
+    }
+    setSaving(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    await (supabase as any).from("player_performance").delete().eq("id", id);
+    queryClient.invalidateQueries({ queryKey: ["my-performance"] });
+    toast({ title: "Borttagen", description: "Testresultat borttaget." });
+  };
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-6 md:p-8 space-y-6">
+      <h3 className="font-display font-semibold text-foreground flex items-center gap-2">
+        <Dumbbell className="h-5 w-5" /> Lägg till fysiskt testresultat
+      </h3>
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Testtyp</Label>
+          <Select value={testType} onValueChange={(v) => { setTestType(v); setTestName(""); setUnit(testTypes.find(t => t.value === v)?.defaultUnit || ""); }}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {testTypes.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label>Test</Label>
+          <Select value={testName} onValueChange={setTestName}>
+            <SelectTrigger><SelectValue placeholder="Välj test" /></SelectTrigger>
+            <SelectContent>
+              {selectedType?.tests.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Resultat</Label>
+          <Input type="number" step="0.01" placeholder="T.ex. 5.2" value={value} onChange={e => setValue(e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <Label>Enhet</Label>
+          <Input value={unit} onChange={e => setUnit(e.target.value)} placeholder="T.ex. sek, cm, kg" />
+        </div>
+      </div>
+      <Button onClick={handleAdd} disabled={saving || !testName || !value} className="w-full" size="lg">
+        <Plus className="mr-2 h-4 w-4" />
+        {saving ? "Sparar..." : "Lägg till resultat"}
+      </Button>
+
+      {isLoading ? (
+        <Skeleton className="h-32 rounded-2xl" />
+      ) : perfData.length > 0 ? (
+        <div className="space-y-3 pt-4 border-t border-border">
+          <h4 className="font-medium text-foreground">Dina testresultat</h4>
+          {perfData.map((p: any) => (
+            <div key={p.id} className="flex items-center justify-between p-3 rounded-xl bg-muted">
+              <div>
+                <p className="font-medium text-foreground text-sm">{p.test_name}</p>
+                <p className="text-xs text-muted-foreground">{testTypes.find(t => t.value === p.test_type)?.label || p.test_type}</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="font-bold text-foreground">{p.value} {p.unit}</span>
+                <button onClick={() => handleDelete(p.id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive transition-colors">
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
 const MyProfile = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
