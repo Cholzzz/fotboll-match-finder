@@ -73,6 +73,59 @@ const PlayerStats = ({ userId }: { userId: string }) => {
   );
 };
 
+const testTypeLabels: Record<string, string> = {
+  sprint: "Sprint", endurance: "Uthållighet", jump: "Hopp", agility: "Snabbhet", strength: "Styrka",
+};
+
+const PlayerPerformance = ({ userId }: { userId: string }) => {
+  const { data: perfData = [], isLoading } = useQuery({
+    queryKey: ["player-performance-public", userId],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("player_performance")
+        .select("*")
+        .eq("user_id", userId)
+        .order("test_type", { ascending: true });
+      return data || [];
+    },
+  });
+
+  if (isLoading) return <Skeleton className="h-32 rounded-2xl" />;
+  if (perfData.length === 0) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-6 text-center">
+        <p className="text-muted-foreground">Inga fysiska testresultat tillagda ännu.</p>
+      </div>
+    );
+  }
+
+  const grouped = perfData.reduce((acc: any, p: any) => {
+    const type = p.test_type;
+    if (!acc[type]) acc[type] = [];
+    acc[type].push(p);
+    return acc;
+  }, {});
+
+  return (
+    <div className="space-y-4">
+      {Object.entries(grouped).map(([type, tests]: [string, any]) => (
+        <div key={type} className="rounded-2xl border border-border bg-card p-6">
+          <h3 className="font-display font-semibold text-foreground mb-4">{testTypeLabels[type] || type}</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {tests.map((t: any) => (
+              <div key={t.id} className="text-center p-3 rounded-xl bg-muted">
+                <p className="text-2xl font-bold text-foreground">{t.value}</p>
+                <p className="text-xs text-muted-foreground">{t.unit}</p>
+                <p className="text-sm font-medium text-foreground mt-1">{t.test_name}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const statusLabels: Record<string, { label: string; color: string }> = {
   free_agent: { label: "Kontraktslös", color: "bg-neon/10 text-neon border-neon/20" },
   looking: { label: "Söker klubb", color: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
