@@ -12,6 +12,7 @@ import ResetPassword from "./pages/ResetPassword";
 import PlayerProfile from "./pages/PlayerProfile";
 import ClubProfile from "./pages/ClubProfile";
 import SearchPlayers from "./pages/SearchPlayers";
+import SearchClubs from "./pages/SearchClubs";
 import SearchStaff from "./pages/SearchStaff";
 import StaffProfile from "./pages/StaffProfile";
 import Trials from "./pages/Trials";
