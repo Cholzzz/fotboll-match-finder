@@ -174,7 +174,7 @@ const MyStaffProfile = () => {
         available_days: enabledDays,
         available_hours_start: firstEnabled?.start || "09:00",
         available_hours_end: firstEnabled?.end || "17:00",
-        day_schedules: weekSchedule as unknown as Record<string, unknown>,
+        day_schedules: JSON.parse(JSON.stringify(weekSchedule)),
       };
 
       const { error } = await supabase
