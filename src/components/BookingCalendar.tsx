@@ -1,9 +1,8 @@
 import { useState, useMemo } from "react";
-import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { format, addDays, isSameDay, startOfDay, parse, isAfter, isBefore } from "date-fns";
+import { format, parse, isBefore, startOfDay } from "date-fns";
 import { sv } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Clock, Check } from "lucide-react";
+import { Clock, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TimeSlot {
@@ -11,10 +10,17 @@ interface TimeSlot {
   available: boolean;
 }
 
+interface DayScheduleEntry {
+  enabled: boolean;
+  start: string;
+  end: string;
+}
+
 interface BookingCalendarProps {
   availableDays?: string[];
   availableHoursStart?: string;
   availableHoursEnd?: string;
+  daySchedules?: Record<string, DayScheduleEntry>;
   sessionDuration?: number;
   bookedSlots?: { date: string; startTime: string }[];
   onSelectSlot?: (date: Date, time: string) => void;
@@ -22,14 +28,14 @@ interface BookingCalendarProps {
   selectedTime?: string | null;
 }
 
+const dayNumberToName: Record<number, string> = {
+  0: "sunday", 1: "monday", 2: "tuesday", 3: "wednesday",
+  4: "thursday", 5: "friday", 6: "saturday",
+};
+
 const dayNameMap: Record<string, number> = {
-  sunday: 0,
-  monday: 1,
-  tuesday: 2,
-  wednesday: 3,
-  thursday: 4,
-  friday: 5,
-  saturday: 6,
+  sunday: 0, monday: 1, tuesday: 2, wednesday: 3,
+  thursday: 4, friday: 5, saturday: 6,
 };
 
 const generateTimeSlots = (
@@ -41,7 +47,7 @@ const generateTimeSlots = (
   const slots: TimeSlot[] = [];
   const start = parse(startHour, "HH:mm", new Date());
   const end = parse(endHour, "HH:mm", new Date());
-  
+
   let current = start;
   while (isBefore(current, end)) {
     const timeString = format(current, "HH:mm");
@@ -51,7 +57,7 @@ const generateTimeSlots = (
     });
     current = new Date(current.getTime() + duration * 60000);
   }
-  
+
   return slots;
 };
 
@@ -59,6 +65,7 @@ const BookingCalendar = ({
   availableDays = ["monday", "tuesday", "wednesday", "thursday", "friday"],
   availableHoursStart = "09:00",
   availableHoursEnd = "17:00",
+  daySchedules,
   sessionDuration = 60,
   bookedSlots = [],
   onSelectSlot,
@@ -67,54 +74,52 @@ const BookingCalendar = ({
 }: BookingCalendarProps) => {
   const [internalDate, setInternalDate] = useState<Date | undefined>(undefined);
   const [internalTime, setInternalTime] = useState<string | null>(null);
-  
+
   const selectedDate = controlledDate !== undefined ? controlledDate : internalDate;
   const selectedTime = controlledTime !== undefined ? controlledTime : internalTime;
-  
+
   const setSelectedDate = (date: Date | undefined) => {
-    if (controlledDate === undefined) {
-      setInternalDate(date);
-    }
+    if (controlledDate === undefined) setInternalDate(date);
   };
-  
   const setSelectedTime = (time: string | null) => {
-    if (controlledTime === undefined) {
-      setInternalTime(time);
-    }
+    if (controlledTime === undefined) setInternalTime(time);
   };
 
-  // Get available day numbers
-  const availableDayNumbers = useMemo(() => 
-    availableDays.map(day => dayNameMap[day.toLowerCase()]),
-    [availableDays]
-  );
+  // Determine which days are available
+  const availableDayNumbers = useMemo(() => {
+    if (daySchedules && Object.keys(daySchedules).length > 0) {
+      return Object.entries(daySchedules)
+        .filter(([, s]) => s.enabled)
+        .map(([day]) => dayNameMap[day.toLowerCase()]);
+    }
+    return availableDays.map(day => dayNameMap[day.toLowerCase()]);
+  }, [availableDays, daySchedules]);
 
-  // Disable dates that are not in available days or are in the past
   const disabledDays = (date: Date) => {
     const today = startOfDay(new Date());
-    const dayOfWeek = date.getDay();
-    return isBefore(date, today) || !availableDayNumbers.includes(dayOfWeek);
+    return isBefore(date, today) || !availableDayNumbers.includes(date.getDay());
   };
 
-  // Get booked times for selected date
   const bookedTimesForDate = useMemo(() => {
     if (!selectedDate) return [];
     const dateString = format(selectedDate, "yyyy-MM-dd");
-    return bookedSlots
-      .filter(slot => slot.date === dateString)
-      .map(slot => slot.startTime);
+    return bookedSlots.filter(slot => slot.date === dateString).map(slot => slot.startTime);
   }, [selectedDate, bookedSlots]);
 
-  // Generate time slots for selected date
+  // Get hours for the selected day (per-day or global fallback)
+  const { dayStart, dayEnd } = useMemo(() => {
+    if (!selectedDate) return { dayStart: availableHoursStart, dayEnd: availableHoursEnd };
+    const dayName = dayNumberToName[selectedDate.getDay()];
+    if (daySchedules && daySchedules[dayName]?.enabled) {
+      return { dayStart: daySchedules[dayName].start, dayEnd: daySchedules[dayName].end };
+    }
+    return { dayStart: availableHoursStart, dayEnd: availableHoursEnd };
+  }, [selectedDate, daySchedules, availableHoursStart, availableHoursEnd]);
+
   const timeSlots = useMemo(() => {
     if (!selectedDate) return [];
-    return generateTimeSlots(
-      availableHoursStart,
-      availableHoursEnd,
-      sessionDuration,
-      bookedTimesForDate
-    );
-  }, [selectedDate, availableHoursStart, availableHoursEnd, sessionDuration, bookedTimesForDate]);
+    return generateTimeSlots(dayStart, dayEnd, sessionDuration, bookedTimesForDate);
+  }, [selectedDate, dayStart, dayEnd, sessionDuration, bookedTimesForDate]);
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
@@ -123,14 +128,11 @@ const BookingCalendar = ({
 
   const handleTimeSelect = (time: string) => {
     setSelectedTime(time);
-    if (selectedDate && onSelectSlot) {
-      onSelectSlot(selectedDate, time);
-    }
+    if (selectedDate && onSelectSlot) onSelectSlot(selectedDate, time);
   };
 
   return (
     <div className="space-y-6">
-      {/* Calendar */}
       <div className="rounded-xl border border-border bg-card p-4">
         <Calendar
           mode="single"
@@ -165,15 +167,15 @@ const BookingCalendar = ({
         />
       </div>
 
-      {/* Time Slots */}
       {selectedDate && (
         <div className="rounded-xl border border-border bg-card p-4">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-1">
             <Clock className="h-4 w-4 text-neon" />
             <h4 className="font-medium text-foreground">
               Tillgängliga tider - {format(selectedDate, "d MMMM", { locale: sv })}
             </h4>
           </div>
+          <p className="text-xs text-muted-foreground mb-4">{dayStart} – {dayEnd}</p>
 
           {timeSlots.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
@@ -203,7 +205,6 @@ const BookingCalendar = ({
         </div>
       )}
 
-      {/* Selected Summary */}
       {selectedDate && selectedTime && (
         <div className="rounded-xl border border-neon/30 bg-neon/5 p-4">
           <div className="flex items-center gap-2 text-neon mb-2">
