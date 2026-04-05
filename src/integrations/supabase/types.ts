@@ -379,6 +379,7 @@ export type Database = {
           available_hours_start: string | null
           certifications: Json | null
           created_at: string
+          day_schedules: Json | null
           experience_years: number | null
           id: string
           package_price: number | null
@@ -396,6 +397,7 @@ export type Database = {
           available_hours_start?: string | null
           certifications?: Json | null
           created_at?: string
+          day_schedules?: Json | null
           experience_years?: number | null
           id?: string
           package_price?: number | null
@@ -413,6 +415,7 @@ export type Database = {
           available_hours_start?: string | null
           certifications?: Json | null
           created_at?: string
+          day_schedules?: Json | null
           experience_years?: number | null
           id?: string
           package_price?: number | null
