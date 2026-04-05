@@ -264,8 +264,16 @@ const StaffProfile = () => {
                   {selectedDate && selectedTime && (
                     <div className="mt-6 space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="notes">Meddelande (valfritt)</Label>
-                        <Textarea id="notes" placeholder="Beskriv kort vad du behöver hjälp med..." value={bookingNotes} onChange={(e) => setBookingNotes(e.target.value)} className="resize-none" rows={3} />
+                        <Label htmlFor="notes">Beskriv ditt ärende</Label>
+                        <Textarea
+                          id="notes"
+                          placeholder="Beskriv vad du behöver hjälp med, t.ex. var du har ont, hur skadan uppstod, eller vad du vill uppnå med besöket..."
+                          value={bookingNotes}
+                          onChange={(e) => setBookingNotes(e.target.value)}
+                          className="resize-none"
+                          rows={5}
+                        />
+                        <p className="text-xs text-muted-foreground">Detta hjälper personalen förbereda sig inför ert möte.</p>
                       </div>
                       <Button className="w-full btn-glow" size="lg" onClick={() => { setSelectedService(services[0]?.name || "Session"); handleSubmitBooking(); }} disabled={isSubmitting}>
                         {isSubmitting ? (<><Loader2 className="h-4 w-4 mr-2 animate-spin" />Skickar...</>) : (<><Mail className="h-4 w-4 mr-2" />Skicka bokningsförfrågan</>)}
@@ -346,8 +354,16 @@ const StaffProfile = () => {
                       {selectedDate && selectedTime && (
                         <>
                           <div className="space-y-2">
-                            <Label htmlFor="modal-notes">Meddelande (valfritt)</Label>
-                            <Textarea id="modal-notes" placeholder="Beskriv kort vad du behöver hjälp med..." value={bookingNotes} onChange={(e) => setBookingNotes(e.target.value)} className="resize-none" rows={3} />
+                            <Label htmlFor="modal-notes">Beskriv ditt ärende</Label>
+                            <Textarea
+                              id="modal-notes"
+                              placeholder="Beskriv vad du behöver hjälp med, t.ex. var du har ont, hur skadan uppstod, eller vad du vill uppnå med besöket..."
+                              value={bookingNotes}
+                              onChange={(e) => setBookingNotes(e.target.value)}
+                              className="resize-none"
+                              rows={5}
+                            />
+                            <p className="text-xs text-muted-foreground">Detta hjälper personalen förbereda sig inför ert möte.</p>
                           </div>
                           <div className="space-y-2 pt-2">
                             <div className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="h-4 w-4 text-neon" />Bekräftelse skickas via email</div>
