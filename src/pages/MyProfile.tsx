@@ -185,9 +185,27 @@ const MyProfile = () => {
   const [savingStats, setSavingStats] = useState(false);
 
 
+  // Fetch user role to redirect non-players
+  const { data: userRole } = useQuery({
+    queryKey: ["my-profile-role", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user!.id)
+        .single();
+      return data?.role || null;
+    },
+    enabled: !!user,
+  });
+
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate("/login"); return; }
+    // Redirect non-players to their correct profile page
+    if (userRole === "club") { navigate("/dashboard", { replace: true }); return; }
+    const staffRoles = ["physiotherapist", "coach", "analyst", "scout", "nutritionist", "mental_coach"];
+    if (userRole && staffRoles.includes(userRole)) { navigate("/my-staff-profile", { replace: true }); return; }
 
     const fetchData = async () => {
       const { data: profile } = await supabase
