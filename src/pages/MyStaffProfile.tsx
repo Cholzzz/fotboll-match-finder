@@ -133,7 +133,7 @@ const MyStaffProfile = () => {
       setPackageSessions(staffProfile.package_sessions?.toString() || "5");
 
       // Load per-day schedules
-      const savedSchedule = staffProfile.day_schedules as WeekSchedule | null;
+      const savedSchedule = staffProfile.day_schedules as unknown as WeekSchedule | null;
       if (savedSchedule && Object.keys(savedSchedule).length > 0) {
         setWeekSchedule({ ...defaultSchedule, ...savedSchedule });
       } else {
