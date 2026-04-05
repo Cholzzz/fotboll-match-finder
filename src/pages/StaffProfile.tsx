@@ -129,6 +129,7 @@ const StaffProfile = () => {
   const services = (staff.services as any[] || []) as { name: string; description: string; price: number; duration: number }[];
   const certifications = (staff.certifications as string[] || []);
   const availableDays = (staff.available_days as string[] || ["monday", "tuesday", "wednesday", "thursday", "friday"]);
+  const daySchedules = staff.day_schedules as unknown as Record<string, { enabled: boolean; start: string; end: string }> | undefined;
 
   const handleSlotSelect = (date: Date, time: string) => { setSelectedDate(date); setSelectedTime(time); };
   const handleBookService = (serviceName: string) => { setSelectedService(serviceName); setBookingOpen(true); };
