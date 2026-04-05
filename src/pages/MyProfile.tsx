@@ -237,7 +237,7 @@ const MyProfile = () => {
       setLoading(false);
     };
     fetchData();
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, navigate, userRole]);
 
   // Dashboard data
   const { data: myBookings = [] } = useQuery({
