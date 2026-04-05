@@ -254,6 +254,7 @@ const StaffProfile = () => {
                     availableDays={availableDays}
                     availableHoursStart={staff.available_hours_start?.slice(0, 5) || "09:00"}
                     availableHoursEnd={staff.available_hours_end?.slice(0, 5) || "17:00"}
+                    daySchedules={daySchedules || undefined}
                     sessionDuration={staff.session_duration || 60}
                     bookedSlots={bookedSlots}
                     onSelectSlot={handleSlotSelect}
