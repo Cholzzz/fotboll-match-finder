@@ -53,7 +53,10 @@ const Login = () => {
           hasProfile = !!sp;
         }
 
-        if (hasProfile) {
+        const staffRoles = ['physiotherapist', 'coach', 'analyst', 'scout', 'nutritionist', 'mental_coach'];
+        if (staffRoles.includes(role)) {
+          navigate('/my-staff-profile');
+        } else if (hasProfile) {
           navigate('/activity');
         } else if (role === 'club') {
           navigate('/dashboard');

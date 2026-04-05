@@ -6,13 +6,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Save, Calendar, DollarSign, Check, X } from "lucide-react";
+import { Loader2, Save, Calendar, Check, X, Clock } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+interface DaySchedule {
+  enabled: boolean;
+  start: string;
+  end: string;
+}
+
+type WeekSchedule = Record<string, DaySchedule>;
 
 const daysOfWeek = [
   { value: "monday", label: "Måndag" },
@@ -23,6 +32,16 @@ const daysOfWeek = [
   { value: "saturday", label: "Lördag" },
   { value: "sunday", label: "Söndag" },
 ];
+
+const defaultSchedule: WeekSchedule = {
+  monday: { enabled: true, start: "09:00", end: "17:00" },
+  tuesday: { enabled: true, start: "09:00", end: "17:00" },
+  wednesday: { enabled: true, start: "09:00", end: "17:00" },
+  thursday: { enabled: true, start: "09:00", end: "17:00" },
+  friday: { enabled: true, start: "09:00", end: "17:00" },
+  saturday: { enabled: false, start: "10:00", end: "14:00" },
+  sunday: { enabled: false, start: "10:00", end: "14:00" },
+};
 
 const MyStaffProfile = () => {
   const { user, loading: authLoading } = useAuth();
@@ -35,9 +54,7 @@ const MyStaffProfile = () => {
   const [sessionDuration, setSessionDuration] = useState("60");
   const [packagePrice, setPackagePrice] = useState("");
   const [packageSessions, setPackageSessions] = useState("5");
-  const [availableDays, setAvailableDays] = useState<string[]>(["monday", "tuesday", "wednesday", "thursday", "friday"]);
-  const [hoursStart, setHoursStart] = useState("09:00");
-  const [hoursEnd, setHoursEnd] = useState("17:00");
+  const [weekSchedule, setWeekSchedule] = useState<WeekSchedule>(defaultSchedule);
   const [bio, setBio] = useState("");
 
   const { data: staffProfile, isLoading } = useQuery({
@@ -63,7 +80,6 @@ const MyStaffProfile = () => {
     enabled: !!user,
   });
 
-  // Bookings for this staff member
   const { data: myBookings = [] } = useQuery({
     queryKey: ["staff-bookings", user?.id],
     queryFn: async () => {
@@ -75,7 +91,6 @@ const MyStaffProfile = () => {
 
       if (!data?.length) return [];
 
-      // Get client names
       const clientIds = [...new Set(data.map((b) => b.client_user_id))];
       const { data: profiles } = await supabase
         .from("profiles")
@@ -116,15 +131,39 @@ const MyStaffProfile = () => {
       setSessionDuration(staffProfile.session_duration?.toString() || "60");
       setPackagePrice(staffProfile.package_price?.toString() || "");
       setPackageSessions(staffProfile.package_sessions?.toString() || "5");
-      setAvailableDays((staffProfile.available_days as string[]) || ["monday", "tuesday", "wednesday", "thursday", "friday"]);
-      setHoursStart(staffProfile.available_hours_start?.slice(0, 5) || "09:00");
-      setHoursEnd(staffProfile.available_hours_end?.slice(0, 5) || "17:00");
+
+      // Load per-day schedules
+      const savedSchedule = staffProfile.day_schedules as WeekSchedule | null;
+      if (savedSchedule && Object.keys(savedSchedule).length > 0) {
+        setWeekSchedule({ ...defaultSchedule, ...savedSchedule });
+      } else {
+        // Migrate from old format
+        const oldDays = (staffProfile.available_days as string[]) || [];
+        const oldStart = staffProfile.available_hours_start?.slice(0, 5) || "09:00";
+        const oldEnd = staffProfile.available_hours_end?.slice(0, 5) || "17:00";
+        const migrated: WeekSchedule = {};
+        for (const day of daysOfWeek) {
+          migrated[day.value] = {
+            enabled: oldDays.includes(day.value),
+            start: oldStart,
+            end: oldEnd,
+          };
+        }
+        setWeekSchedule(migrated);
+      }
     }
     if (profile) setBio(profile.bio || "");
   }, [staffProfile, profile]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      // Derive legacy fields from new schedule for backwards compatibility
+      const enabledDays = Object.entries(weekSchedule)
+        .filter(([, s]) => s.enabled)
+        .map(([day]) => day);
+
+      const firstEnabled = enabledDays.length > 0 ? weekSchedule[enabledDays[0]] : null;
+
       const updates = {
         specialization,
         experience_years: experienceYears ? parseInt(experienceYears) : null,
@@ -132,9 +171,10 @@ const MyStaffProfile = () => {
         session_duration: sessionDuration ? parseInt(sessionDuration) : 60,
         package_price: packagePrice ? parseInt(packagePrice) : null,
         package_sessions: packageSessions ? parseInt(packageSessions) : 5,
-        available_days: availableDays,
-        available_hours_start: hoursStart,
-        available_hours_end: hoursEnd,
+        available_days: enabledDays,
+        available_hours_start: firstEnabled?.start || "09:00",
+        available_hours_end: firstEnabled?.end || "17:00",
+        day_schedules: weekSchedule,
       };
 
       const { error } = await supabase
@@ -170,10 +210,11 @@ const MyStaffProfile = () => {
     return null;
   }
 
-  const toggleDay = (day: string) => {
-    setAvailableDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-    );
+  const updateDaySchedule = (day: string, field: keyof DaySchedule, value: string | boolean) => {
+    setWeekSchedule((prev) => ({
+      ...prev,
+      [day]: { ...prev[day], [field]: value },
+    }));
   };
 
   const pendingBookings = myBookings.filter((b: any) => b.status === "pending");
@@ -184,12 +225,12 @@ const MyStaffProfile = () => {
     <Layout>
       <div className="container py-8 max-w-3xl">
         <h1 className="font-display text-3xl font-bold text-foreground mb-2">Min personalprofil</h1>
-        <p className="text-muted-foreground mb-8">Hantera din profil, bokningar och intäkter</p>
+        <p className="text-muted-foreground mb-8">Hantera din profil, schema och bokningar</p>
 
-        <Tabs defaultValue="profile" className="w-full">
+        <Tabs defaultValue="schedule" className="w-full">
           <TabsList className="mb-6 w-full justify-start">
-            <TabsTrigger value="profile" className="gap-2">
-              <Save className="h-4 w-4" /> Profil
+            <TabsTrigger value="schedule" className="gap-2">
+              <Clock className="h-4 w-4" /> Schema
             </TabsTrigger>
             <TabsTrigger value="bookings" className="gap-2">
               <Calendar className="h-4 w-4" /> Bokningar
@@ -199,85 +240,98 @@ const MyStaffProfile = () => {
                 </span>
               )}
             </TabsTrigger>
+            <TabsTrigger value="profile" className="gap-2">
+              <Save className="h-4 w-4" /> Profil
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="profile">
+          {/* SCHEDULE TAB - Primary focus */}
+          <TabsContent value="schedule">
             <div className="space-y-6">
               <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
-                <h2 className="font-display font-semibold text-foreground">Om dig</h2>
-                <div className="space-y-2">
-                  <Label>Specialisering</Label>
-                  <Input value={specialization} onChange={(e) => setSpecialization(e.target.value)} placeholder="T.ex. Ungdomsutveckling" />
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock className="h-5 w-5 text-neon" />
+                  <h2 className="font-display font-semibold text-foreground">Lediga tider per dag</h2>
                 </div>
-                <div className="space-y-2">
-                  <Label>Erfarenhet (år)</Label>
-                  <Input type="number" value={experienceYears} onChange={(e) => setExperienceYears(e.target.value)} placeholder="0" min="0" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Biografi</Label>
-                  <Textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Beskriv din bakgrund..." rows={4} />
+                <p className="text-sm text-muted-foreground">
+                  Ange vilka dagar och tider du är tillgänglig. Klienter ser dessa tider när de bokar.
+                </p>
+
+                <div className="space-y-3 mt-4">
+                  {daysOfWeek.map((day) => {
+                    const schedule = weekSchedule[day.value];
+                    return (
+                      <div
+                        key={day.value}
+                        className={`rounded-xl border p-4 transition-colors ${
+                          schedule.enabled
+                            ? "border-neon/30 bg-neon/5"
+                            : "border-border bg-card opacity-60"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Switch
+                              checked={schedule.enabled}
+                              onCheckedChange={(checked) =>
+                                updateDaySchedule(day.value, "enabled", checked)
+                              }
+                            />
+                            <span className={`font-medium text-sm ${schedule.enabled ? "text-foreground" : "text-muted-foreground"}`}>
+                              {day.label}
+                            </span>
+                          </div>
+
+                          {schedule.enabled && (
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="time"
+                                value={schedule.start}
+                                onChange={(e) =>
+                                  updateDaySchedule(day.value, "start", e.target.value)
+                                }
+                                className="w-28 h-8 text-sm"
+                              />
+                              <span className="text-muted-foreground text-sm">–</span>
+                              <Input
+                                type="time"
+                                value={schedule.end}
+                                onChange={(e) =>
+                                  updateDaySchedule(day.value, "end", e.target.value)
+                                }
+                                className="w-28 h-8 text-sm"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
               <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
-                <h2 className="font-display font-semibold text-foreground">Priser</h2>
+                <h2 className="font-display font-semibold text-foreground">Sessionsinställningar</h2>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Sessionspris (kr)</Label>
-                    <Input type="number" value={sessionPrice} onChange={(e) => setSessionPrice(e.target.value)} placeholder="0" />
-                  </div>
                   <div className="space-y-2">
                     <Label>Sessionstid (min)</Label>
                     <Input type="number" value={sessionDuration} onChange={(e) => setSessionDuration(e.target.value)} placeholder="60" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Paketpris (kr)</Label>
-                    <Input type="number" value={packagePrice} onChange={(e) => setPackagePrice(e.target.value)} placeholder="0" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Sessioner i paket</Label>
-                    <Input type="number" value={packageSessions} onChange={(e) => setPackageSessions(e.target.value)} placeholder="5" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
-                <h2 className="font-display font-semibold text-foreground">Tillgänglighet</h2>
-                <div className="space-y-2">
-                  <Label>Tillgängliga dagar</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {daysOfWeek.map((day) => (
-                      <button key={day.value} onClick={() => toggleDay(day.value)}
-                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                          availableDays.includes(day.value)
-                            ? "bg-neon text-neon-foreground"
-                            : "bg-muted text-muted-foreground hover:bg-muted/80"
-                        }`}>
-                        {day.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Starttid</Label>
-                    <Input type="time" value={hoursStart} onChange={(e) => setHoursStart(e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Sluttid</Label>
-                    <Input type="time" value={hoursEnd} onChange={(e) => setHoursEnd(e.target.value)} />
+                    <Label>Sessionspris (kr)</Label>
+                    <Input type="number" value={sessionPrice} onChange={(e) => setSessionPrice(e.target.value)} placeholder="0" />
                   </div>
                 </div>
               </div>
 
               <Button className="w-full btn-glow" size="lg" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
-                {saveMutation.isPending ? (<><Loader2 className="h-4 w-4 mr-2 animate-spin" />Sparar...</>) : (<><Save className="h-4 w-4 mr-2" />Spara profil</>)}
+                {saveMutation.isPending ? (<><Loader2 className="h-4 w-4 mr-2 animate-spin" />Sparar...</>) : (<><Save className="h-4 w-4 mr-2" />Spara schema</>)}
               </Button>
             </div>
           </TabsContent>
 
+          {/* BOOKINGS TAB */}
           <TabsContent value="bookings">
-            {/* Quick stats */}
             <div className="grid grid-cols-3 gap-4 mb-6">
               <div className="rounded-2xl border border-border bg-card p-4 text-center">
                 <p className="text-2xl font-bold text-foreground">{pendingBookings.length}</p>
@@ -348,6 +402,45 @@ const MyStaffProfile = () => {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          {/* PROFILE TAB */}
+          <TabsContent value="profile">
+            <div className="space-y-6">
+              <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
+                <h2 className="font-display font-semibold text-foreground">Om dig</h2>
+                <div className="space-y-2">
+                  <Label>Specialisering</Label>
+                  <Input value={specialization} onChange={(e) => setSpecialization(e.target.value)} placeholder="T.ex. Ungdomsutveckling" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Erfarenhet (år)</Label>
+                  <Input type="number" value={experienceYears} onChange={(e) => setExperienceYears(e.target.value)} placeholder="0" min="0" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Biografi</Label>
+                  <Textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Beskriv din bakgrund..." rows={4} />
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
+                <h2 className="font-display font-semibold text-foreground">Paketpriser</h2>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Paketpris (kr)</Label>
+                    <Input type="number" value={packagePrice} onChange={(e) => setPackagePrice(e.target.value)} placeholder="0" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Sessioner i paket</Label>
+                    <Input type="number" value={packageSessions} onChange={(e) => setPackageSessions(e.target.value)} placeholder="5" />
+                  </div>
+                </div>
+              </div>
+
+              <Button className="w-full btn-glow" size="lg" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
+                {saveMutation.isPending ? (<><Loader2 className="h-4 w-4 mr-2 animate-spin" />Sparar...</>) : (<><Save className="h-4 w-4 mr-2" />Spara profil</>)}
+              </Button>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
