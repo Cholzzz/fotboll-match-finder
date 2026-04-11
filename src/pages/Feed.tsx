@@ -137,18 +137,56 @@ const Feed = () => {
     enabled: Object.values(showComments).some(Boolean),
   });
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "För stor fil", description: "Max 5MB.", variant: "destructive" });
+      return;
+    }
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImagePreview(null);
+  };
+
   // Create post
   const createPost = useMutation({
     mutationFn: async () => {
-      if (!newPost.trim()) return;
-      const { error } = await supabase.from("posts").insert({ user_id: user!.id, content: newPost.trim() });
+      if (!newPost.trim() && !imageFile) return;
+      setUploading(true);
+
+      let imageUrl: string | null = null;
+      if (imageFile) {
+        const ext = imageFile.name.split(".").pop();
+        const path = `${user!.id}/${Date.now()}.${ext}`;
+        const { error: uploadErr } = await supabase.storage.from("post-images").upload(path, imageFile);
+        if (uploadErr) throw uploadErr;
+        const { data: urlData } = supabase.storage.from("post-images").getPublicUrl(path);
+        imageUrl = urlData.publicUrl;
+      }
+
+      const { error } = await supabase.from("posts").insert({
+        user_id: user!.id,
+        content: newPost.trim() || "📷",
+        image_url: imageUrl,
+      });
       if (error) throw error;
     },
     onSuccess: () => {
       setNewPost("");
+      removeImage();
+      setUploading(false);
       queryClient.invalidateQueries({ queryKey: ["feed-posts"] });
     },
-    onError: () => toast({ title: "Fel", description: "Kunde inte publicera inlägget.", variant: "destructive" }),
+    onError: () => {
+      setUploading(false);
+      toast({ title: "Fel", description: "Kunde inte publicera inlägget.", variant: "destructive" });
+    },
   });
 
   // Like/unlike
