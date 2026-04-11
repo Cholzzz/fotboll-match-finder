@@ -473,6 +473,16 @@ const Feed = () => {
                       <MessageCircle className="w-4 h-4" />
                       Kommentera
                     </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => sharePost.mutate(post.id)}
+                      disabled={sharePost.isPending}
+                      className="flex-1 gap-1.5 text-xs text-muted-foreground"
+                    >
+                      <Repeat2 className="w-4 h-4" />
+                      Dela
+                    </Button>
                   </div>
 
                   {/* Comments section */}
