@@ -418,6 +418,18 @@ const MyProfile = () => {
           </div>
         </div>
 
+        <ProfileCompleteness
+          steps={[
+            { label: "Position", completed: !!position },
+            { label: "Ålder", completed: !!age },
+            { label: "Region", completed: !!region },
+            { label: "Stark fot", completed: !!preferredFoot },
+            { label: "Bio", completed: !!bio },
+            { label: "Profilbild", completed: !!avatarUrl },
+          ]}
+          className="mb-6"
+        />
+
         <Tabs defaultValue="edit" className="w-full">
           <TabsList className="mb-6 w-full justify-start">
             <TabsTrigger value="edit" className="gap-2">
