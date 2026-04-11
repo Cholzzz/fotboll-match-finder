@@ -13,6 +13,7 @@ import { toast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Save, User, Calendar, Eye, ClipboardList, EyeOff, BarChart3, XCircle, Dumbbell, Plus, Trash2 } from "lucide-react";
 import AvatarUpload from "@/components/AvatarUpload";
+import ProfileCompleteness from "@/components/ProfileCompleteness";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 
@@ -416,6 +417,18 @@ const MyProfile = () => {
             </p>
           </div>
         </div>
+
+        <ProfileCompleteness
+          steps={[
+            { label: "Position", completed: !!position },
+            { label: "Ålder", completed: !!age },
+            { label: "Region", completed: !!region },
+            { label: "Stark fot", completed: !!preferredFoot },
+            { label: "Bio", completed: !!bio },
+            { label: "Profilbild", completed: !!avatarUrl },
+          ]}
+          className="mb-6"
+        />
 
         <Tabs defaultValue="edit" className="w-full">
           <TabsList className="mb-6 w-full justify-start">
