@@ -129,14 +129,14 @@ const Header = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                title={link.label}
+                className={`flex items-center justify-center p-2 rounded-lg transition-all ${
                   isActive(link.path)
                     ? "text-neon bg-neon/10"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
               >
                 <link.icon className="w-4 h-4" />
-                {link.label}
               </Link>
             ))}
           </nav>
