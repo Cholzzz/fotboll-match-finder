@@ -116,7 +116,7 @@ const Header = () => {
       <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-md border-b border-border">
         <div className="container flex h-14 items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
+          <Link to={user ? "/feed" : "/"} className="flex items-center gap-2 group">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-neon group-hover:shadow-glow-neon transition-shadow">
               <span className="font-headline text-base font-bold text-background">S</span>
             </div>

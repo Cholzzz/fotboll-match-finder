@@ -24,6 +24,7 @@ import MyStaffProfile from "./pages/MyStaffProfile";
 import Connections from "./pages/Connections";
 import Rankings from "./pages/Rankings";
 import ActivityFeed from "./pages/ActivityFeed";
+import Feed from "./pages/Feed";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/feed" element={<Feed />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
