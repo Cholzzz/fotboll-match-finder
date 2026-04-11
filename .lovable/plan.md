@@ -1,59 +1,133 @@
 
 
-## Plan: Gör plattformen komplett -- träningsdata och rensning
+## Plan: Roadmap till produktionsklar SportsIN inom 4 månader
 
-Genomgång av vad som saknas/är statiskt och behöver bli funktionellt.
+### Nuläge
+
+Plattformen har en solid grund med ~20 sidor, databaskoppling, roller och grundläggande funktionalitet. Men mycket är fortfarande halvfärdigt eller saknar den polish som krävs för riktiga användare.
 
 ---
 
-### Problem idag
+### Fas 1 -- Kärnfunktionalitet & UX-polish (Månad 1-2)
 
-1. **PerformanceTests-sidan** -- helt statisk informationssida, ingen faktisk datainmatning
-2. **NutritionPlan-sidan** -- helt statisk med hårdkodade värden, ingen koppling till databasen
-3. **Statistik** finns och fungerar redan (player_statistics-tabellen + formulär i MyProfile)
-4. Sidorna Performance och Nutrition tillför inget användbart -- de är bara "förklaringssidor"
+**1. Design-pass: Modern & enkel**
+- Förenkla alla sidor -- ta bort visuellt brus, öka whitespace
+- Konsekvent typografi och spacing genom hela appen
+- Mobilanpassning på varje sida (flera sidor ser klumpiga på mobil nu)
+- Förbättra landningssidan med tydligare CTA och snabbare onboarding-flöde
+- Dark mode som default för inloggade användare
 
-### Lösning: Integrera träningsdata direkt i spelarprofilen
+**2. Registrering & Onboarding**
+- Steg-för-steg onboarding efter registrering beroende på roll (spelare fyller i position/ålder, klubb fyller i klubbinfo, personal fyller i tjänster)
+- Profilkompletthetsindikator ("Din profil är 60% klar")
+- Automatisk redirect till rätt dashboard efter registrering
 
-Istället för separata sidor som inte gör något -- flytta in allt värdefullt i spelarprofilen där det faktiskt används.
+**3. Spelarprofil (MyProfile + PlayerProfile)**
+- Rensa och förenkla layouten -- tydliga sektioner för info, statistik, fysik, highlights
+- GPS-västimport (CSV) för fysisk data som diskuterats
+- Visa prestationsdata visuellt med grafer istället för bara tabeller
+- Profilbild-cropping och bättre avatar-hantering
 
-**Steg 1 -- Ny databastabell `player_performance`**
-```
-player_performance:
-  user_id (uuid), test_type (text), test_name (text),
-  value (numeric), unit (text), verified_by (text),
-  created_at (timestamptz)
-```
-RLS: alla kan läsa, spelare kan skriva sin egen data.
+**4. Klubbdashboard**
+- Spelarsökning med avancerade filter direkt i dashboarden
+- Sparade spelare med anteckningar
+- Hantera provträningar och se ansökningar tydligare
+- Klubbens publika profil med laguppställning och kontaktinfo
 
-**Steg 2 -- Lägg till "Fysik"-flik i MyProfile**
-- Ny flik bredvid Statistik i MyProfile
-- Formulär för att mata in fysiska testresultat: sprint (40m), Yo-Yo, hopptest, etc.
-- Dropdown för testtyp, input för resultat + enhet
-- Spara till `player_performance`-tabellen
+**5. Personalvy (Fysio/Tränare)**
+- Schema-systemet som redan byggts -- polisha och testa
+- Bokningshantering: personal ser inkommande bokningar, kan godkänna/neka
+- Ärendebeskrivning synlig för personalen
 
-**Steg 3 -- Visa fysisk data på PlayerProfile**
-- Ny flik "Fysik" på den publika spelarprofilen
-- Visar alla testresultat i en snygg grid med ikoner
-- Sorterat på testtyp
+---
 
-**Steg 4 -- Rensa bort statiska sidor**
-- Ta bort PerformanceTests och NutritionPlan från routing och navigation (de tillför inget som funktionella sidor)
-- Alternativt: behåll Performance som en "info"-länk men ta bort den från huvudnavigationen
+### Fas 2 -- Kommunikation & Interaktion (Månad 2-3)
+
+**6. Meddelanden**
+- Realtidsmeddelanden (websockets redan uppsatta)
+- Olästa meddelanden-räknare i headern
+- Push-notifikationer (browser notifications)
+- Möjlighet att skicka bilder/filer i chatten
+
+**7. Connections-systemet**
+- Polisha connect/accept-flödet
+- Visa gemensamma kontakter
+- "Nätverket växer"-notifikationer
+
+**8. Highlights-sidan**
+- TikTok-stil vertikal scroll -- redan delvis på plats, behöver polish
+- Gilla och kommentera highlights
+- Tagga position och klubb i highlights
+
+---
+
+### Fas 3 -- Avancerade features (Månad 3-4)
+
+**9. Notifikationer**
+- Centralt notifikationssystem: nya meddelanden, bokningsbekräftelser, connection-requests, provträningsinbjudningar
+- E-postnotifikationer för viktiga händelser
+
+**10. Sök & Discovery**
+- Förbättrad sökning med autosuggest
+- Filtrera spelare på prestationsdata (t.ex. "visa spelare med sprint under 5s")
+- Kartvy för klubbar och provträningar
+
+**11. Admin/Moderation**
+- Rapportera olämpligt innehåll
+- Verifiera profiler (coach-verified, GPS-verified badges som redan designats i CSS)
+
+**12. Provträningar**
+- Kalendervy istället för lista
+- Automatiska påminnelser
+- Resultat/feedback efter provträning
+
+---
+
+### Fas 4 -- Produktionsredo (Månad 4)
+
+**13. Prestanda & Säkerhet**
+- Lazy loading på alla sidor
+- Bildoptimering (WebP, rätt storlekar)
+- RLS-policies audit på alla tabeller
+- Rate limiting på API-anrop
+
+**14. SEO & Tillgänglighet**
+- Meta-taggar och Open Graph för delning
+- Aria-labels och keyboard-navigation
+- Sitemap och robots.txt
+
+**15. Lansering**
+- Custom domän
+- Analytics-integration
+- Feedbackformulär för tidiga användare
+- Onboarding-guide/tutorial för nya användare
+
+---
 
 ### Tekniska detaljer
 
 ```text
-Ny tabell:
-  player_performance: user_id, test_type, test_name, value, unit,
-                      verified_by (default 'self'), created_at
-
-Filer som ändras:
-  src/pages/MyProfile.tsx         -- ny "Fysik"-flik med formulär
-  src/pages/PlayerProfile.tsx     -- ny "Fysik"-flik som visar data
-  src/App.tsx                     -- ta bort /performance och /nutrition routes
-  src/components/layout/Header.tsx -- ta bort Performance/Nutrition från nav
+Prioritetsordning:
+┌─────────────────────────────────────┐
+│ 1. UX-polish & mobilanpassning     │  ← Gör störst skillnad snabbast
+│ 2. Onboarding-flöde                │
+│ 3. GPS-import & prestationsgrafer  │
+│ 4. Meddelanden & notifikationer    │
+│ 5. Sök-förbättringar              │
+│ 6. Produktionshärdning            │
+└─────────────────────────────────────┘
 ```
 
-Resultatet: spelaren fyller i sin träningsdata (sprint, hopp, uthållighet) direkt i sin profil, och klubbar ser det direkt på spelarens publika profil -- allt på ett ställe, enkelt och komplett.
+**Sidor att ta bort** (redan statiska/oanvända):
+- `/performance` (PerformanceTests.tsx) -- integrerat i profilen
+- `/nutrition` (NutritionPlan.tsx) -- ej i scope
+
+**Nya komponenter som behövs:**
+- `OnboardingWizard` -- steg-för-steg efter registrering
+- `PerformanceChart` -- grafer för fysisk data
+- `CSVImporter` -- GPS-västdataimport
+- `NotificationCenter` -- centralt notifikationssystem
+- `ProfileCompleteness` -- progressbar för profilstatus
+
+Vi tar det steg för steg, en fas i taget. Vilken del vill du börja med?
 
