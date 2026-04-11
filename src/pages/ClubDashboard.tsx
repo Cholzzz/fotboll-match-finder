@@ -218,8 +218,8 @@ const ClubDashboard = () => {
             <p className="text-xs text-muted-foreground">Provträningar</p>
           </div>
           <div className="rounded-2xl border border-border bg-card p-4 text-center">
-            <p className="text-2xl font-bold text-foreground">{uniqueRegions.length}</p>
-            <p className="text-xs text-muted-foreground">Regioner</p>
+            <p className="text-2xl font-bold text-foreground">{trialApplications.filter((a: any) => a.status === "pending").length}</p>
+            <p className="text-xs text-muted-foreground">Nya ansökningar</p>
           </div>
         </div>
 
