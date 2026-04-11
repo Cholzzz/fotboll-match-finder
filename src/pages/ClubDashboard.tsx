@@ -399,21 +399,68 @@ const ClubDashboard = () => {
                 <Link to="/trials"><Button variant="neon">Gå till provträningar</Button></Link>
               </div>
             ) : (
-              <div className="grid md:grid-cols-2 gap-4">
-                {myTrials.map((trial: any) => (
-                  <div key={trial.id} className="rounded-2xl border border-border bg-card p-5">
-                    <h3 className="font-display font-semibold text-foreground mb-2">{trial.title || "Provträning"}</h3>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                      <Calendar className="h-4 w-4" /> {trial.trial_date}
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                      <MapPin className="h-4 w-4" /> {trial.location}
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Users className="h-4 w-4" /> Max {trial.max_spots} platser
-                    </div>
-                  </div>
-                ))}
+              <div className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-4">
+                  {myTrials.map((trial: any) => {
+                    const apps = trialApplications.filter((a: any) => a.trial_id === trial.id);
+                    const pending = apps.filter((a: any) => a.status === "pending");
+                    return (
+                      <div key={trial.id} className="rounded-2xl border border-border bg-card p-5">
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="font-display font-semibold text-foreground">{trial.title || "Provträning"}</h3>
+                          {pending.length > 0 && (
+                            <span className="px-2 py-0.5 rounded-full bg-neon text-neon-foreground text-xs font-medium">
+                              {pending.length} nya
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                          <Calendar className="h-4 w-4" /> {trial.trial_date}
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                          <MapPin className="h-4 w-4" /> {trial.location}
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                          <Users className="h-4 w-4" /> {apps.length} ansökningar / {trial.max_spots} platser
+                        </div>
+                        {apps.length > 0 && (
+                          <div className="space-y-2 pt-3 border-t border-border">
+                            {apps.map((app: any) => (
+                              <div key={app.id} className="flex items-center justify-between p-2 rounded-lg bg-muted">
+                                <div className="flex items-center gap-2">
+                                  <Avatar className="h-7 w-7 rounded-lg">
+                                    <AvatarImage src={app.playerAvatar || undefined} />
+                                    <AvatarFallback className="rounded-lg bg-foreground text-background text-xs">
+                                      {app.playerName?.charAt(0) || "?"}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <Link to={`/player/${app.player_user_id}`} className="text-sm font-medium text-foreground hover:text-neon transition-colors">
+                                      {app.playerName}
+                                    </Link>
+                                    {app.message && (
+                                      <p className="text-xs text-muted-foreground truncate max-w-[200px]">{app.message}</p>
+                                    )}
+                                  </div>
+                                </div>
+                                <span className={`px-2 py-0.5 rounded-lg text-xs font-medium ${
+                                  app.status === "accepted" ? "bg-neon/10 text-neon" :
+                                  app.status === "rejected" ? "bg-destructive/10 text-destructive" :
+                                  "bg-muted-foreground/10 text-muted-foreground"
+                                }`}>
+                                  {app.status === "accepted" ? "Godkänd" : app.status === "rejected" ? "Nekad" : "Väntande"}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="text-center">
+                  <Link to="/trials"><Button variant="outline">Hantera provträningar</Button></Link>
+                </div>
               </div>
             )}
           </TabsContent>
