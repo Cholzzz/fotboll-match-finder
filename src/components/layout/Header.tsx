@@ -1,13 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Video, Users, Search as SearchIcon, Calendar, Activity, ChevronDown, UserCheck, User, LogOut, MessageSquare, Link2, Trophy, Building2 } from "lucide-react";
+import {
+  Menu, X, Video, Users, Search as SearchIcon, Calendar, Activity,
+  ChevronDown, UserCheck, User, LogOut, MessageSquare, Link2, Trophy,
+  Building2, Settings, Sun, Moon, Monitor
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,11 +20,34 @@ import { toast } from "@/hooks/use-toast";
 import NotificationBell from "@/components/NotificationBell";
 import { useQuery } from "@tanstack/react-query";
 
+type Theme = "light" | "dark" | "system";
+
+const getStoredTheme = (): Theme => {
+  if (typeof window === "undefined") return "light";
+  return (localStorage.getItem("theme") as Theme) || "light";
+};
+
+const applyTheme = (theme: Theme) => {
+  const root = document.documentElement;
+  if (theme === "system") {
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    root.classList.toggle("dark", prefersDark);
+  } else {
+    root.classList.toggle("dark", theme === "dark");
+  }
+  localStorage.setItem("theme", theme);
+};
+
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [theme, setTheme] = useState<Theme>(getStoredTheme);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
 
   const { data: userRole } = useQuery({
     queryKey: ["user-role-header", user?.id],
@@ -47,7 +75,6 @@ const Header = () => {
 
   const mainNavLinks = [
     { path: "/highlights", label: "Highlights", icon: Video },
-    // Players see "Sök klubbar", clubs see "Sök spelare", others see both
     ...(isPlayerRole
       ? [{ path: "/search-clubs", label: "Sök klubbar", icon: Building2 }]
       : isClubRole
@@ -62,9 +89,18 @@ const Header = () => {
     { path: "/activity", label: "Aktivitet", icon: Activity },
   ];
 
-  const toolsNavLinks: typeof mainNavLinks = [];
-
-  const allNavLinks = [...mainNavLinks, ...toolsNavLinks];
+  // Quick icons for mobile/tablet bottom bar (most important links)
+  const mobileQuickLinks = [
+    { path: "/highlights", icon: Video, label: "Highlights" },
+    ...(isPlayerRole
+      ? [{ path: "/search-clubs", icon: Building2, label: "Klubbar" }]
+      : isClubRole
+        ? [{ path: "/search", icon: Users, label: "Spelare" }]
+        : [{ path: "/search", icon: Users, label: "Sök" }]),
+    { path: "/trials", icon: Calendar, label: "Trials" },
+    { path: "/rankings", icon: Trophy, label: "Topp" },
+    { path: "/activity", icon: Activity, label: "Aktivitet" },
+  ];
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -72,181 +108,176 @@ const Header = () => {
     navigate("/");
   };
 
-  return (
-    <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-md border-b border-border">
-      <div className="container flex h-16 items-center justify-between">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-neon group-hover:shadow-glow-neon transition-shadow">
-            <span className="font-headline text-lg font-bold text-background">S</span>
-          </div>
-          <span className="font-headline text-xl font-bold text-foreground">SportsIN</span>
-        </Link>
+  const themeIcon = theme === "dark" ? Moon : theme === "system" ? Monitor : Sun;
+  const ThemeIcon = themeIcon;
 
-        {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center gap-1">
-          {mainNavLinks.map((link) => (
+  return (
+    <>
+      <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-md border-b border-border">
+        <div className="container flex h-14 items-center justify-between">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-neon group-hover:shadow-glow-neon transition-shadow">
+              <span className="font-headline text-base font-bold text-background">S</span>
+            </div>
+            <span className="font-headline text-lg font-bold text-foreground hidden sm:inline">SportsIN</span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden lg:flex items-center gap-1">
+            {mainNavLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  isActive(link.path)
+                    ? "text-neon bg-neon/10"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+              >
+                <link.icon className="w-4 h-4" />
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Right side actions */}
+          <div className="flex items-center gap-1">
+            {!loading && user ? (
+              <>
+                <NotificationBell />
+                <Link to="/messages">
+                  <Button variant="ghost" size="icon" className={`h-9 w-9 ${isActive("/messages") ? "text-neon" : ""}`}>
+                    <MessageSquare className="h-4 w-4" />
+                  </Button>
+                </Link>
+
+                {/* Settings dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-9 w-9">
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuLabel className="text-xs text-muted-foreground">Utseende</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => setTheme("light")} className="flex items-center gap-2">
+                      <Sun className="h-4 w-4" />
+                      Ljust
+                      {theme === "light" && <span className="ml-auto text-neon text-xs">✓</span>}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme("dark")} className="flex items-center gap-2">
+                      <Moon className="h-4 w-4" />
+                      Mörkt
+                      {theme === "dark" && <span className="ml-auto text-neon text-xs">✓</span>}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme("system")} className="flex items-center gap-2">
+                      <Monitor className="h-4 w-4" />
+                      System
+                      {theme === "system" && <span className="ml-auto text-neon text-xs">✓</span>}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Profile dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
+                      <div className="h-7 w-7 rounded-full bg-neon flex items-center justify-center">
+                        <span className="text-xs font-bold text-background">
+                          {user.user_metadata?.full_name?.charAt(0)?.toUpperCase() || "U"}
+                        </span>
+                      </div>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem asChild>
+                      <Link to={getProfilePath()} className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        Min profil
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/connections" className="flex items-center gap-2">
+                        <Link2 className="h-4 w-4" />
+                        Mitt nätverk
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 text-destructive">
+                      <LogOut className="h-4 w-4" />
+                      Logga ut
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : !loading ? (
+              <>
+                {/* Settings for non-logged-in users */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-9 w-9">
+                      <ThemeIcon className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-40">
+                    <DropdownMenuItem onClick={() => setTheme("light")} className="flex items-center gap-2">
+                      <Sun className="h-4 w-4" /> Ljust
+                      {theme === "light" && <span className="ml-auto text-neon text-xs">✓</span>}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme("dark")} className="flex items-center gap-2">
+                      <Moon className="h-4 w-4" /> Mörkt
+                      {theme === "dark" && <span className="ml-auto text-neon text-xs">✓</span>}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme("system")} className="flex items-center gap-2">
+                      <Monitor className="h-4 w-4" /> System
+                      {theme === "system" && <span className="ml-auto text-neon text-xs">✓</span>}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Link to="/login">
+                  <Button variant="ghost" size="sm" className="hidden sm:inline-flex">Logga in</Button>
+                </Link>
+                <Link to="/register">
+                  <Button variant="neon" size="sm" className="btn-glow text-xs sm:text-sm">Kom igång</Button>
+                </Link>
+              </>
+            ) : null}
+          </div>
+        </div>
+      </header>
+
+      {/* Mobile/Tablet bottom navigation bar - replaces hamburger */}
+      {!loading && user && (
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border">
+          <div className="flex items-center justify-around h-14 px-2">
+            {mobileQuickLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors min-w-0 ${
+                  isActive(link.path)
+                    ? "text-neon"
+                    : "text-muted-foreground"
+                }`}
+              >
+                <link.icon className="w-5 h-5" />
+                <span className="text-[10px] font-medium truncate">{link.label}</span>
+              </Link>
+            ))}
             <Link
-              key={link.path}
-              to={link.path}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                isActive(link.path)
-                  ? "text-neon bg-neon/10"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              to={getProfilePath()}
+              className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors ${
+                isActive(getProfilePath()) ? "text-neon" : "text-muted-foreground"
               }`}
             >
-              <link.icon className="w-4 h-4" />
-              {link.label}
+              <User className="w-5 h-5" />
+              <span className="text-[10px] font-medium">Profil</span>
             </Link>
-          ))}
-          
-          {toolsNavLinks.length > 0 && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button 
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    toolsNavLinks.some(l => isActive(l.path))
-                      ? "text-neon bg-neon/10"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  }`}
-                >
-                  Verktyg
-                  <ChevronDown className="w-4 h-4" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                {toolsNavLinks.map((link) => (
-                  <DropdownMenuItem key={link.path} asChild>
-                    <Link 
-                      to={link.path} 
-                      className={`flex items-center gap-3 ${isActive(link.path) ? 'text-neon' : ''}`}
-                    >
-                      <link.icon className="w-4 h-4" />
-                      {link.label}
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </nav>
-
-        {/* Desktop Actions */}
-        <div className="hidden lg:flex items-center gap-2">
-          {!loading && user ? (
-            <>
-              <NotificationBell />
-              <Link to="/messages">
-                <Button variant="ghost" size="icon" className={isActive("/messages") ? "text-neon" : ""}>
-                  <MessageSquare className="h-5 w-5" />
-                </Button>
-              </Link>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full">
-                    <div className="h-8 w-8 rounded-full bg-neon flex items-center justify-center">
-                      <span className="text-sm font-bold text-background">
-                        {user.user_metadata?.full_name?.charAt(0)?.toUpperCase() || "U"}
-                      </span>
-                    </div>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem asChild>
-                    <Link to={getProfilePath()} className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      Min profil
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/connections" className="flex items-center gap-2">
-                      <Link2 className="h-4 w-4" />
-                      Mitt nätverk
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 text-destructive">
-                    <LogOut className="h-4 w-4" />
-                    Logga ut
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
-          ) : !loading ? (
-            <>
-              <Link to="/login">
-                <Button variant="ghost" size="sm">Logga in</Button>
-              </Link>
-              <Link to="/register">
-                <Button variant="neon" size="sm" className="btn-glow">Kom igång</Button>
-              </Link>
-            </>
-          ) : null}
-        </div>
-
-        {/* Mobile Menu Button */}
-        <button
-          className="lg:hidden p-2 rounded-lg hover:bg-muted transition-colors"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          aria-label="Toggle menu"
-        >
-          {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div className="lg:hidden border-t border-border bg-background animate-fade-in">
-          <div className="container py-4 space-y-4">
-            <nav className="grid grid-cols-2 gap-2">
-              {allNavLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-4 rounded-xl text-sm font-medium transition-all ${
-                    isActive(link.path)
-                      ? "bg-neon/10 text-neon border border-neon/20"
-                      : "bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted"
-                  }`}
-                >
-                  <link.icon className="w-5 h-5" />
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-            <div className="flex flex-col gap-2 pt-4 border-t border-border">
-              {user ? (
-                <>
-                  <Link to={getProfilePath()} onClick={() => setIsMenuOpen(false)}>
-                    <Button variant="outline" className="w-full gap-2">
-                      <User className="h-4 w-4" /> Min profil
-                    </Button>
-                  </Link>
-                  <Link to="/connections" onClick={() => setIsMenuOpen(false)}>
-                    <Button variant="outline" className="w-full gap-2">
-                      <Link2 className="h-4 w-4" /> Mitt nätverk
-                    </Button>
-                  </Link>
-                  <Button variant="ghost" className="w-full gap-2 text-destructive" onClick={() => { handleLogout(); setIsMenuOpen(false); }}>
-                    <LogOut className="h-4 w-4" /> Logga ut
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Link to="/login" onClick={() => setIsMenuOpen(false)}>
-                    <Button variant="outline" className="w-full">Logga in</Button>
-                  </Link>
-                  <Link to="/register" onClick={() => setIsMenuOpen(false)}>
-                    <Button variant="neon" className="w-full btn-glow">Kom igång</Button>
-                  </Link>
-                </>
-              )}
-            </div>
           </div>
-        </div>
+        </nav>
       )}
-    </header>
+    </>
   );
 };
 
