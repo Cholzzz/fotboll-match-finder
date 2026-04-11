@@ -425,9 +425,35 @@ const Feed = () => {
                     </div>
 
                     {/* Content */}
-                    <p className="mt-3 text-sm text-foreground whitespace-pre-wrap">{post.content}</p>
+                    {!post.sharedPost && (
+                      <p className="mt-3 text-sm text-foreground whitespace-pre-wrap">{post.content}</p>
+                    )}
                     {post.image_url && (
                       <img src={post.image_url} alt="" className="mt-3 rounded-lg w-full object-cover max-h-96" />
+                    )}
+
+                    {/* Shared/Reposted content */}
+                    {post.sharedPost && (
+                      <div className="mt-3 border border-border rounded-xl overflow-hidden">
+                        <div className="p-3">
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-7 w-7">
+                              <AvatarImage src={post.sharedPost.author?.avatar_url || ""} />
+                              <AvatarFallback className="text-[10px] bg-muted">
+                                {post.sharedPost.author?.full_name?.charAt(0)?.toUpperCase() || "?"}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-semibold text-xs">{post.sharedPost.author?.full_name || "Okänd"}</p>
+                              <p className="text-[10px] text-muted-foreground">{getRoleLabel(post.sharedPost.authorRole || null)}</p>
+                            </div>
+                          </div>
+                          <p className="mt-2 text-sm text-foreground whitespace-pre-wrap">{post.sharedPost.content}</p>
+                          {post.sharedPost.image_url && (
+                            <img src={post.sharedPost.image_url} alt="" className="mt-2 rounded-lg w-full object-cover max-h-64" />
+                          )}
+                        </div>
+                      </div>
                     )}
                   </div>
 
