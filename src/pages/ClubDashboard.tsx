@@ -124,6 +124,41 @@ const ClubDashboard = () => {
     enabled: !!user,
   });
 
+  // Fetch trial applications for club's trials
+  const { data: trialApplications = [] } = useQuery({
+    queryKey: ["club-trial-applications", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data: trials } = await supabase
+        .from("trials")
+        .select("id")
+        .eq("club_user_id", user.id);
+      if (!trials?.length) return [];
+      const trialIds = trials.map((t: any) => t.id);
+      const { data } = await supabase
+        .from("trial_applications")
+        .select("*, trials(title, trial_date, location)")
+        .in("trial_id", trialIds)
+        .order("created_at", { ascending: false });
+      
+      if (!data?.length) return [];
+      const playerIds = [...new Set(data.map((a: any) => a.player_user_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, avatar_url")
+        .in("user_id", playerIds);
+      const profileMap = Object.fromEntries(
+        (profiles || []).map((p: any) => [p.user_id, p])
+      );
+      return data.map((a: any) => ({
+        ...a,
+        playerName: profileMap[a.player_user_id]?.full_name || "Okänd",
+        playerAvatar: profileMap[a.player_user_id]?.avatar_url || null,
+      }));
+    },
+    enabled: !!user,
+  });
+
   const handleSaveProfile = async () => {
     if (!user) return;
     setSavingProfile(true);
