@@ -124,7 +124,7 @@ const Header = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center justify-center gap-1 flex-1 mx-4">
             {mainNavLinks.map((link) => (
               <Link
                 key={link.path}
