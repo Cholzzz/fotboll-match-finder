@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
-  Heart, MessageCircle, Send, Image as ImageIcon, X,
+  Heart, MessageCircle, Send, Image as ImageIcon, X, Repeat2,
   MapPin, Briefcase, Users, TrendingUp, ChevronRight, Loader2
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
