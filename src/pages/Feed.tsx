@@ -236,6 +236,34 @@ const Feed = () => {
     },
   });
 
+  // Share/repost
+  const sharePost = useMutation({
+    mutationFn: async (postId: string) => {
+      const originalPost = posts?.find(p => p.id === postId);
+      const originalId = originalPost?.shared_post_id || postId;
+      const { data: existing } = await supabase
+        .from("posts")
+        .select("id")
+        .eq("user_id", user!.id)
+        .eq("shared_post_id", originalId)
+        .maybeSingle();
+      if (existing) throw new Error("Du har redan delat detta inlägg");
+      const { error } = await supabase.from("posts").insert({
+        user_id: user!.id,
+        content: "delade ett inlägg",
+        shared_post_id: originalId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: "Delat!", description: "Inlägget har delats i ditt flöde." });
+      queryClient.invalidateQueries({ queryKey: ["feed-posts"] });
+    },
+    onError: (err: any) => {
+      toast({ title: "Kunde inte dela", description: err.message, variant: "destructive" });
+    },
+  });
+
   const getRoleLabel = (role: string | null) => {
     const map: Record<string, string> = {
       player: "Spelare",
