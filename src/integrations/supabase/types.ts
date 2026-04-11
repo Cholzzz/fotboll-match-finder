@@ -382,6 +382,7 @@ export type Database = {
           created_at: string
           id: string
           image_url: string | null
+          shared_post_id: string | null
           updated_at: string
           user_id: string
         }
@@ -390,6 +391,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          shared_post_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -398,10 +400,19 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          shared_post_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "posts_shared_post_id_fkey"
+            columns: ["shared_post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

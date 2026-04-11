@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
-  Heart, MessageCircle, Send, Image as ImageIcon, X,
+  Heart, MessageCircle, Send, Image as ImageIcon, X, Repeat2,
   MapPin, Briefcase, Users, TrendingUp, ChevronRight, Loader2
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
@@ -81,22 +81,42 @@ const Feed = () => {
 
       if (!postsData) return [];
 
-      const userIds = [...new Set(postsData.map((p) => p.user_id))];
+      // Collect all user IDs including shared post authors
+      const sharedPostIds = postsData.filter(p => p.shared_post_id).map(p => p.shared_post_id!);
+      let sharedPosts: typeof postsData = [];
+      if (sharedPostIds.length > 0) {
+        const { data } = await supabase.from("posts").select("*").in("id", sharedPostIds);
+        sharedPosts = data || [];
+      }
+
+      const allUserIds = [...new Set([
+        ...postsData.map((p) => p.user_id),
+        ...sharedPosts.map((p) => p.user_id),
+      ])];
+
       const [{ data: profiles }, { data: roles }, { data: likes }, { data: comments }] = await Promise.all([
-        supabase.from("profiles").select("user_id, full_name, avatar_url, location").in("user_id", userIds),
-        supabase.from("user_roles").select("user_id, role").in("user_id", userIds),
+        supabase.from("profiles").select("user_id, full_name, avatar_url, location").in("user_id", allUserIds),
+        supabase.from("user_roles").select("user_id, role").in("user_id", allUserIds),
         supabase.from("post_likes").select("post_id, user_id"),
         supabase.from("post_comments").select("post_id"),
       ]);
 
-      return postsData.map((post) => ({
-        ...post,
-        author: profiles?.find((p) => p.user_id === post.user_id),
-        authorRole: roles?.find((r) => r.user_id === post.user_id)?.role,
-        likesCount: likes?.filter((l) => l.post_id === post.id).length || 0,
-        isLiked: likes?.some((l) => l.post_id === post.id && l.user_id === user?.id) || false,
-        commentsCount: comments?.filter((c) => c.post_id === post.id).length || 0,
-      }));
+      return postsData.map((post) => {
+        const shared = post.shared_post_id ? sharedPosts.find(s => s.id === post.shared_post_id) : null;
+        return {
+          ...post,
+          author: profiles?.find((p) => p.user_id === post.user_id),
+          authorRole: roles?.find((r) => r.user_id === post.user_id)?.role,
+          likesCount: likes?.filter((l) => l.post_id === post.id).length || 0,
+          isLiked: likes?.some((l) => l.post_id === post.id && l.user_id === user?.id) || false,
+          commentsCount: comments?.filter((c) => c.post_id === post.id).length || 0,
+          sharedPost: shared ? {
+            ...shared,
+            author: profiles?.find((p) => p.user_id === shared.user_id),
+            authorRole: roles?.find((r) => r.user_id === shared.user_id)?.role,
+          } : null,
+        };
+      });
     },
     enabled: !!user,
   });
@@ -213,6 +233,34 @@ const Feed = () => {
       setCommentTexts((p) => ({ ...p, [postId]: "" }));
       queryClient.invalidateQueries({ queryKey: ["feed-posts"] });
       queryClient.invalidateQueries({ queryKey: ["feed-comments"] });
+    },
+  });
+
+  // Share/repost
+  const sharePost = useMutation({
+    mutationFn: async (postId: string) => {
+      const originalPost = posts?.find(p => p.id === postId);
+      const originalId = originalPost?.shared_post_id || postId;
+      const { data: existing } = await supabase
+        .from("posts")
+        .select("id")
+        .eq("user_id", user!.id)
+        .eq("shared_post_id", originalId)
+        .maybeSingle();
+      if (existing) throw new Error("Du har redan delat detta inlägg");
+      const { error } = await supabase.from("posts").insert({
+        user_id: user!.id,
+        content: "delade ett inlägg",
+        shared_post_id: originalId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: "Delat!", description: "Inlägget har delats i ditt flöde." });
+      queryClient.invalidateQueries({ queryKey: ["feed-posts"] });
+    },
+    onError: (err: any) => {
+      toast({ title: "Kunde inte dela", description: err.message, variant: "destructive" });
     },
   });
 
@@ -377,9 +425,35 @@ const Feed = () => {
                     </div>
 
                     {/* Content */}
-                    <p className="mt-3 text-sm text-foreground whitespace-pre-wrap">{post.content}</p>
+                    {!post.sharedPost && (
+                      <p className="mt-3 text-sm text-foreground whitespace-pre-wrap">{post.content}</p>
+                    )}
                     {post.image_url && (
                       <img src={post.image_url} alt="" className="mt-3 rounded-lg w-full object-cover max-h-96" />
+                    )}
+
+                    {/* Shared/Reposted content */}
+                    {post.sharedPost && (
+                      <div className="mt-3 border border-border rounded-xl overflow-hidden">
+                        <div className="p-3">
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-7 w-7">
+                              <AvatarImage src={post.sharedPost.author?.avatar_url || ""} />
+                              <AvatarFallback className="text-[10px] bg-muted">
+                                {post.sharedPost.author?.full_name?.charAt(0)?.toUpperCase() || "?"}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-semibold text-xs">{post.sharedPost.author?.full_name || "Okänd"}</p>
+                              <p className="text-[10px] text-muted-foreground">{getRoleLabel(post.sharedPost.authorRole || null)}</p>
+                            </div>
+                          </div>
+                          <p className="mt-2 text-sm text-foreground whitespace-pre-wrap">{post.sharedPost.content}</p>
+                          {post.sharedPost.image_url && (
+                            <img src={post.sharedPost.image_url} alt="" className="mt-2 rounded-lg w-full object-cover max-h-64" />
+                          )}
+                        </div>
+                      </div>
                     )}
                   </div>
 
@@ -424,6 +498,16 @@ const Feed = () => {
                     >
                       <MessageCircle className="w-4 h-4" />
                       Kommentera
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => sharePost.mutate(post.id)}
+                      disabled={sharePost.isPending}
+                      className="flex-1 gap-1.5 text-xs text-muted-foreground"
+                    >
+                      <Repeat2 className="w-4 h-4" />
+                      Dela
                     </Button>
                   </div>
 
