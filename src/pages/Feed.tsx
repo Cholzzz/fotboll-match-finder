@@ -10,8 +10,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
-  Heart, MessageCircle, Send, Image as ImageIcon,
-  MapPin, Briefcase, Users, TrendingUp, ChevronRight
+  Heart, MessageCircle, Send, Image as ImageIcon, X,
+  MapPin, Briefcase, Users, TrendingUp, ChevronRight, Loader2
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
@@ -23,6 +23,9 @@ const Feed = () => {
   const [newPost, setNewPost] = useState("");
   const [showComments, setShowComments] = useState<Record<string, boolean>>({});
   const [commentTexts, setCommentTexts] = useState<Record<string, string>>({});
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   // Fetch user profile
   const { data: profile } = useQuery({
