@@ -372,6 +372,11 @@ const MyStaffProfile = () => {
                           {booking.service_name && (
                             <p className="text-xs text-muted-foreground">{booking.service_name}</p>
                           )}
+                          {booking.notes && (
+                            <div className="mt-2 p-2 rounded-lg bg-muted text-xs text-muted-foreground">
+                              <span className="font-medium text-foreground">Ärende:</span> {booking.notes}
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
