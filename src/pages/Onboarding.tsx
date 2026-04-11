@@ -193,8 +193,8 @@ const Onboarding = () => {
         return (
           <div className="flex flex-col items-center gap-6">
             <AvatarUpload
-              avatarUrl={avatarUrl}
-              onAvatarChange={setAvatarUrl}
+              currentUrl={avatarUrl}
+              onUploaded={(url) => setAvatarUrl(url)}
               userId={user!.id}
             />
             <p className="text-sm text-muted-foreground text-center">
@@ -277,7 +277,7 @@ const Onboarding = () => {
       case 0:
         return (
           <div className="flex flex-col items-center gap-6">
-            <AvatarUpload avatarUrl={avatarUrl} onAvatarChange={setAvatarUrl} userId={user!.id} />
+            <AvatarUpload currentUrl={avatarUrl} onUploaded={(url) => setAvatarUrl(url)} userId={user!.id} />
             <p className="text-sm text-muted-foreground text-center">Ladda upp klubbens logotyp</p>
           </div>
         );
@@ -314,7 +314,7 @@ const Onboarding = () => {
       case 0:
         return (
           <div className="flex flex-col items-center gap-6">
-            <AvatarUpload avatarUrl={avatarUrl} onAvatarChange={setAvatarUrl} userId={user!.id} />
+            <AvatarUpload currentUrl={avatarUrl} onUploaded={(url) => setAvatarUrl(url)} userId={user!.id} />
             <p className="text-sm text-muted-foreground text-center">En professionell bild bygger förtroende</p>
           </div>
         );
