@@ -81,22 +81,42 @@ const Feed = () => {
 
       if (!postsData) return [];
 
-      const userIds = [...new Set(postsData.map((p) => p.user_id))];
+      // Collect all user IDs including shared post authors
+      const sharedPostIds = postsData.filter(p => p.shared_post_id).map(p => p.shared_post_id!);
+      let sharedPosts: typeof postsData = [];
+      if (sharedPostIds.length > 0) {
+        const { data } = await supabase.from("posts").select("*").in("id", sharedPostIds);
+        sharedPosts = data || [];
+      }
+
+      const allUserIds = [...new Set([
+        ...postsData.map((p) => p.user_id),
+        ...sharedPosts.map((p) => p.user_id),
+      ])];
+
       const [{ data: profiles }, { data: roles }, { data: likes }, { data: comments }] = await Promise.all([
-        supabase.from("profiles").select("user_id, full_name, avatar_url, location").in("user_id", userIds),
-        supabase.from("user_roles").select("user_id, role").in("user_id", userIds),
+        supabase.from("profiles").select("user_id, full_name, avatar_url, location").in("user_id", allUserIds),
+        supabase.from("user_roles").select("user_id, role").in("user_id", allUserIds),
         supabase.from("post_likes").select("post_id, user_id"),
         supabase.from("post_comments").select("post_id"),
       ]);
 
-      return postsData.map((post) => ({
-        ...post,
-        author: profiles?.find((p) => p.user_id === post.user_id),
-        authorRole: roles?.find((r) => r.user_id === post.user_id)?.role,
-        likesCount: likes?.filter((l) => l.post_id === post.id).length || 0,
-        isLiked: likes?.some((l) => l.post_id === post.id && l.user_id === user?.id) || false,
-        commentsCount: comments?.filter((c) => c.post_id === post.id).length || 0,
-      }));
+      return postsData.map((post) => {
+        const shared = post.shared_post_id ? sharedPosts.find(s => s.id === post.shared_post_id) : null;
+        return {
+          ...post,
+          author: profiles?.find((p) => p.user_id === post.user_id),
+          authorRole: roles?.find((r) => r.user_id === post.user_id)?.role,
+          likesCount: likes?.filter((l) => l.post_id === post.id).length || 0,
+          isLiked: likes?.some((l) => l.post_id === post.id && l.user_id === user?.id) || false,
+          commentsCount: comments?.filter((c) => c.post_id === post.id).length || 0,
+          sharedPost: shared ? {
+            ...shared,
+            author: profiles?.find((p) => p.user_id === shared.user_id),
+            authorRole: roles?.find((r) => r.user_id === shared.user_id)?.role,
+          } : null,
+        };
+      });
     },
     enabled: !!user,
   });
