@@ -124,7 +124,7 @@ const Header = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1">
             {mainNavLinks.map((link) => (
               <Link
                 key={link.path}
@@ -249,7 +249,7 @@ const Header = () => {
 
       {/* Mobile/Tablet bottom navigation bar - replaces hamburger */}
       {!loading && user && (
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border">
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border">
           <div className="flex items-center justify-around h-14 px-2">
             {mobileQuickLinks.map((link) => (
               <Link
