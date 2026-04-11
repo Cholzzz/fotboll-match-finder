@@ -25,6 +25,7 @@ import Connections from "./pages/Connections";
 import Rankings from "./pages/Rankings";
 import ActivityFeed from "./pages/ActivityFeed";
 import Feed from "./pages/Feed";
+import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,6 +59,7 @@ const App = () => (
             <Route path="/connections" element={<Connections />} />
             <Route path="/rankings" element={<Rankings />} />
             <Route path="/activity" element={<ActivityFeed />} />
+            <Route path="/onboarding" element={<Onboarding />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

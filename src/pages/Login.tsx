@@ -40,32 +40,28 @@ const Login = () => {
 
         const role = roles?.role || '';
 
-        // Check if user has a saved profile already
-        let hasProfile = false;
+        // Check if user has completed onboarding
+        let needsOnboarding = false;
         if (role === 'player') {
-          const { data: pp } = await supabase.from('player_profiles').select('id').eq('user_id', data.user.id).maybeSingle();
-          hasProfile = !!pp;
+          const { data: pp } = await supabase.from('player_profiles').select('id, position').eq('user_id', data.user.id).maybeSingle();
+          needsOnboarding = !pp?.position;
         } else if (role === 'club') {
-          const { data: pr } = await supabase.from('profiles').select('id').eq('user_id', data.user.id).maybeSingle();
-          hasProfile = !!pr;
+          const { data: pr } = await supabase.from('profiles').select('id, bio').eq('user_id', data.user.id).maybeSingle();
+          needsOnboarding = !pr?.bio;
         } else if (['physiotherapist', 'coach', 'analyst', 'scout', 'nutritionist', 'mental_coach'].includes(role)) {
-          const { data: sp } = await supabase.from('staff_profiles').select('id').eq('user_id', data.user.id).maybeSingle();
-          hasProfile = !!sp;
+          const { data: sp } = await supabase.from('staff_profiles').select('id, specialization').eq('user_id', data.user.id).maybeSingle();
+          needsOnboarding = !sp?.specialization;
         }
 
-        const staffRoles = ['physiotherapist', 'coach', 'analyst', 'scout', 'nutritionist', 'mental_coach'];
-        if (staffRoles.includes(role)) {
-          navigate('/my-staff-profile');
-        } else if (hasProfile) {
-          navigate('/activity');
-        } else if (role === 'club') {
-          navigate('/dashboard');
-        } else if (['physiotherapist', 'coach', 'analyst', 'scout', 'nutritionist', 'mental_coach'].includes(role)) {
-          navigate('/my-staff-profile');
-        } else if (role === 'player') {
-          navigate('/my-profile');
+        if (needsOnboarding) {
+          navigate('/onboarding');
         } else {
-          navigate('/');
+          const staffRoles = ['physiotherapist', 'coach', 'analyst', 'scout', 'nutritionist', 'mental_coach'];
+          if (staffRoles.includes(role)) {
+            navigate('/my-staff-profile');
+          } else {
+            navigate('/feed');
+          }
         }
       }
     } catch (error: any) {
