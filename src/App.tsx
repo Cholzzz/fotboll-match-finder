@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import RoleGuard from "@/components/RoleGuard";
 import Index from "./pages/Index";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
@@ -38,28 +39,72 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Public routes */}
             <Route path="/" element={<Index />} />
-            <Route path="/feed" element={<Feed />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/player/:id" element={<PlayerProfile />} />
-            <Route path="/club/:id" element={<ClubProfile />} />
-            <Route path="/search" element={<SearchPlayers />} />
-            <Route path="/search-clubs" element={<SearchClubs />} />
-            <Route path="/search-staff" element={<SearchStaff />} />
-            <Route path="/staff/:id" element={<StaffProfile />} />
-            <Route path="/trials" element={<Trials />} />
+            <Route path="/onboarding" element={<Onboarding />} />
+
+            {/* Shared routes (all roles) */}
+            <Route path="/feed" element={<Feed />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/highlights" element={<Highlights />} />
-            <Route path="/dashboard" element={<ClubDashboard />} />
-            <Route path="/my-profile" element={<MyProfile />} />
-            <Route path="/my-staff-profile" element={<MyStaffProfile />} />
             <Route path="/connections" element={<Connections />} />
-            <Route path="/rankings" element={<Rankings />} />
             <Route path="/activity" element={<ActivityFeed />} />
-            <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/player/:id" element={<PlayerProfile />} />
+            <Route path="/club/:id" element={<ClubProfile />} />
+            <Route path="/staff/:id" element={<StaffProfile />} />
+
+            {/* Player-only routes */}
+            <Route path="/my-profile" element={
+              <RoleGuard allowed={["player"]}>
+                <MyProfile />
+              </RoleGuard>
+            } />
+            <Route path="/search-clubs" element={
+              <RoleGuard allowed={["player"]}>
+                <SearchClubs />
+              </RoleGuard>
+            } />
+
+            {/* Club-only routes */}
+            <Route path="/dashboard" element={
+              <RoleGuard allowed={["club"]}>
+                <ClubDashboard />
+              </RoleGuard>
+            } />
+            <Route path="/search" element={
+              <RoleGuard allowed={["club", "scout"]}>
+                <SearchPlayers />
+              </RoleGuard>
+            } />
+            <Route path="/search-staff" element={
+              <RoleGuard allowed={["club"]}>
+                <SearchStaff />
+              </RoleGuard>
+            } />
+            <Route path="/rankings" element={
+              <RoleGuard allowed={["club", "scout"]}>
+                <Rankings />
+              </RoleGuard>
+            } />
+
+            {/* Player & Club routes */}
+            <Route path="/trials" element={
+              <RoleGuard allowed={["player", "club"]}>
+                <Trials />
+              </RoleGuard>
+            } />
+
+            {/* Staff-only routes */}
+            <Route path="/my-staff-profile" element={
+              <RoleGuard allowed={["physiotherapist", "coach", "analyst", "scout", "nutritionist", "mental_coach"]}>
+                <MyStaffProfile />
+              </RoleGuard>
+            } />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
