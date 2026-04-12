@@ -64,7 +64,7 @@ const App = () => (
               </RoleGuard>
             } />
             <Route path="/search-clubs" element={
-              <RoleGuard allowed={["player", "physiotherapist", "coach", "analyst", "scout", "nutritionist", "mental_coach"]}>
+              <RoleGuard allowed={["player"]}>
                 <SearchClubs />
               </RoleGuard>
             } />
