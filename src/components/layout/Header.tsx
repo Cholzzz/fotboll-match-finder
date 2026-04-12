@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   Menu, X, Video, Users, Search as SearchIcon, Calendar, Activity,
   ChevronDown, UserCheck, User, LogOut, MessageSquare, Link2, Trophy,
-  Building2, Settings, Sun, Moon, Monitor
+  Building2, Settings, Sun, Moon, Monitor, Briefcase
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -18,7 +18,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import NotificationBell from "@/components/NotificationBell";
-import { useQuery } from "@tanstack/react-query";
+import { useUserRole } from "@/hooks/useUserRole";
 
 type Theme = "light" | "dark" | "system";
 
@@ -44,63 +44,85 @@ const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const { role, isPlayer, isClub, isStaff } = useUserRole();
 
   useEffect(() => {
     applyTheme(theme);
   }, [theme]);
 
-  const { data: userRole } = useQuery({
-    queryKey: ["user-role-header", user?.id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user!.id)
-        .single();
-      return data?.role || null;
-    },
-    enabled: !!user,
-  });
-
   const getProfilePath = () => {
-    if (userRole === "club") return "/dashboard";
-    if (["physiotherapist", "coach", "analyst", "scout", "nutritionist", "mental_coach"].includes(userRole || "")) return "/my-staff-profile";
+    if (isClub) return "/dashboard";
+    if (isStaff) return "/my-staff-profile";
     return "/my-profile";
   };
 
   const isActive = (path: string) => location.pathname === path;
 
-  const isPlayerRole = userRole === "player";
-  const isClubRole = userRole === "club";
+  // Role-specific navigation
+  const getNavLinks = () => {
+    if (isPlayer) {
+      return [
+        { path: "/highlights", label: "Highlights", icon: Video },
+        { path: "/search-clubs", label: "Sök klubbar", icon: Building2 },
+        { path: "/trials", label: "Provträningar", icon: Calendar },
+        { path: "/activity", label: "Aktivitet", icon: Activity },
+      ];
+    }
+    if (isClub) {
+      return [
+        { path: "/highlights", label: "Highlights", icon: Video },
+        { path: "/search", label: "Sök spelare", icon: Users },
+        { path: "/search-staff", label: "Sök personal", icon: UserCheck },
+        { path: "/trials", label: "Provträningar", icon: Calendar },
+        { path: "/rankings", label: "Topplista", icon: Trophy },
+        { path: "/activity", label: "Aktivitet", icon: Activity },
+      ];
+    }
+    if (isStaff) {
+      return [
+        { path: "/highlights", label: "Highlights", icon: Video },
+        { path: "/activity", label: "Aktivitet", icon: Activity },
+      ];
+    }
+    // Fallback (no role yet)
+    return [
+      { path: "/highlights", label: "Highlights", icon: Video },
+      { path: "/activity", label: "Aktivitet", icon: Activity },
+    ];
+  };
 
-  const mainNavLinks = [
-    { path: "/highlights", label: "Highlights", icon: Video },
-    ...(isPlayerRole
-      ? [{ path: "/search-clubs", label: "Sök klubbar", icon: Building2 }]
-      : isClubRole
-        ? [{ path: "/search", label: "Sök spelare", icon: Users }]
-        : [
-            { path: "/search", label: "Sök spelare", icon: Users },
-            { path: "/search-clubs", label: "Sök klubbar", icon: Building2 },
-          ]),
-    { path: "/search-staff", label: "Sök personal", icon: UserCheck },
-    { path: "/trials", label: "Provträningar", icon: Calendar },
-    { path: "/rankings", label: "Topplista", icon: Trophy },
-    { path: "/activity", label: "Aktivitet", icon: Activity },
-  ];
+  const getMobileLinks = () => {
+    if (isPlayer) {
+      return [
+        { path: "/search-clubs", icon: Building2, label: "Klubbar" },
+        { path: "/trials", icon: Calendar, label: "Trials" },
+        { path: "/highlights", icon: Video, label: "Highlights" },
+        { path: "/activity", icon: Activity, label: "Aktivitet" },
+      ];
+    }
+    if (isClub) {
+      return [
+        { path: "/search", icon: Users, label: "Spelare" },
+        { path: "/trials", icon: Calendar, label: "Trials" },
+        { path: "/rankings", icon: Trophy, label: "Topp" },
+        { path: "/highlights", icon: Video, label: "Highlights" },
+        { path: "/activity", icon: Activity, label: "Aktivitet" },
+      ];
+    }
+    if (isStaff) {
+      return [
+        { path: "/highlights", icon: Video, label: "Highlights" },
+        { path: "/activity", icon: Activity, label: "Aktivitet" },
+      ];
+    }
+    return [
+      { path: "/highlights", icon: Video, label: "Highlights" },
+      { path: "/activity", icon: Activity, label: "Aktivitet" },
+    ];
+  };
 
-  // Quick icons for mobile/tablet bottom bar (most important links)
-  const mobileQuickLinks = [
-    { path: "/highlights", icon: Video, label: "Highlights" },
-    ...(isPlayerRole
-      ? [{ path: "/search-clubs", icon: Building2, label: "Klubbar" }]
-      : isClubRole
-        ? [{ path: "/search", icon: Users, label: "Spelare" }]
-        : [{ path: "/search", icon: Users, label: "Sök" }]),
-    { path: "/trials", icon: Calendar, label: "Trials" },
-    { path: "/rankings", icon: Trophy, label: "Topp" },
-    { path: "/activity", icon: Activity, label: "Aktivitet" },
-  ];
+  const mainNavLinks = getNavLinks();
+  const mobileQuickLinks = getMobileLinks();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
