@@ -80,6 +80,8 @@ const Header = () => {
     }
     if (isStaff) {
       return [
+        { path: "/my-staff-profile", label: "Bokningar", icon: Calendar },
+        { path: "/search-clubs", label: "Sök klubbar", icon: Building2 },
         { path: "/highlights", label: "Highlights", icon: Video },
         { path: "/activity", label: "Aktivitet", icon: Activity },
       ];
@@ -111,6 +113,8 @@ const Header = () => {
     }
     if (isStaff) {
       return [
+        { path: "/my-staff-profile", icon: Calendar, label: "Bokningar" },
+        { path: "/search-clubs", icon: Building2, label: "Klubbar" },
         { path: "/highlights", icon: Video, label: "Highlights" },
         { path: "/activity", icon: Activity, label: "Aktivitet" },
       ];
